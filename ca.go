@@ -20,6 +20,7 @@ import (
 const (
 	certExtension string = ".crt"
 	csrExtension  string = ".csr"
+	crlExtension  string = ".crl"
 )
 
 // A Identity represents the Certificate Authority Identity Information
@@ -43,6 +44,7 @@ type CAData struct {
 	PublicKey   string
 	CSR         string
 	Certificate string
+	CRL         string
 	privateKey  rsa.PrivateKey
 	certificate *x509.Certificate
 	publicKey   rsa.PublicKey
@@ -77,6 +79,7 @@ func (c *CA) create(commonName string, id Identity) error {
 		publicKeyString []byte
 		csrString       []byte
 		certString      []byte
+		crlString       []byte
 	)
 
 	if id.Organization == "" || id.OrganizationalUnit == "" || id.Country == "" || id.Locality == "" || id.Province == "" {
@@ -125,6 +128,7 @@ func (c *CA) create(commonName string, id Identity) error {
 
 		caData.certificate = certificate
 		caData.Certificate = string(certString)
+
 		crlBytes, err := cert.RevokeCertificate(c.CommonName, []pkix.RevokedCertificate{}, certificate, privKey)
 		if err != nil {
 			crl, err := x509.ParseCRL(crlBytes)
@@ -132,6 +136,12 @@ func (c *CA) create(commonName string, id Identity) error {
 				caData.crl = crl
 			}
 		}
+
+		if crlString, err = storage.LoadFile(caDir + "/" + commonName + crlExtension); err != nil {
+			crlString = []byte{}
+		}
+
+		c.Data.CRL = string(crlString)
 
 	} else {
 		csrBytes, err := cert.CreateCSR(commonName, commonName, id.Country, id.Province, id.Locality, id.Organization, id.OrganizationalUnit, id.EmailAddresses, id.DNSNames, privKey, storage.CreationTypeCA)
@@ -373,6 +383,8 @@ func (c *CA) loadCertificate(commonName string) (certificate Certificate, err er
 func (c *CA) revokeCertificate(certificate *x509.Certificate) error {
 
 	var revokedCerts []pkix.RevokedCertificate
+	var caDir string = "/" + c.CommonName + "/ca"
+	var crlString []byte
 
 	if c.Data.crl != nil {
 		revokedCerts = c.Data.crl.TBSCertList.RevokedCertificates
@@ -395,6 +407,13 @@ func (c *CA) revokeCertificate(certificate *x509.Certificate) error {
 		return err
 	}
 	c.Data.crl = crl
+
+	var crlFile string = caDir + "/" + c.CommonName + crlExtension
+	if crlString, err = storage.LoadFile(crlFile); err != nil {
+		crlString = []byte{}
+	}
+
+	c.Data.CRL = string(crlString)
 
 	return nil
 }
