@@ -131,12 +131,8 @@ func (c *CA) GoCRL() *pkix.CertificateList {
 
 // IsIntermediate returns if the CA is Intermediate CA (true)
 func (c *CA) IsIntermediate() bool {
-	if c.Data.CSR == "" {
-		return false
+	return c.Data.CSR != ""
 
-	}
-
-	return true
 }
 
 // ListCertificates returns all certificates in the CA
