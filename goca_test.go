@@ -213,4 +213,7 @@ func TestFunctionalRevokeCertificate(t *testing.T) {
 	}
 	t.Logf("Test appending revoked certificates")
 
+	if RootCA.GetCRL() == "" {
+		t.Error("CRL X509 file is empty!")
+	}
 }

@@ -19,6 +19,7 @@ package goca
 import (
 	"crypto/rsa"
 	"crypto/x509"
+	"crypto/x509/pkix"
 
 	storage "github.com/kairoaraujo/goca/_storage"
 )
@@ -118,14 +119,24 @@ func (c *CA) GoCertificate() *x509.Certificate {
 	return c.Data.certificate
 }
 
+// GetCRL returns Certificate Revocation List as x509 CRL string
+func (c *CA) GetCRL() string {
+	return c.Data.CRL
+}
+
+// GoCRL returns Certificate Revocation List as Go bytes *pkix.CertificateList
+func (c *CA) GoCRL() *pkix.CertificateList {
+	return c.Data.crl
+}
+
 // IsIntermediate returns if the CA is Intermediate CA (true)
 func (c *CA) IsIntermediate() bool {
 	if c.Data.CSR == "" {
 		return false
 
-	} else {
-		return true
 	}
+
+	return true
 }
 
 // ListCertificates returns all certificates in the CA
