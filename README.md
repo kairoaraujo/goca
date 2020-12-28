@@ -1,5 +1,8 @@
 # Go Certificate Authority management package
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/kairoaraujo/goca)](https://goreportcard.com/report/github.com/kairoaraujo/goca)
+[![Build Status](https://github.com/kairoaraujo/goca/workflows/tests/badge.svg)](https://github.com/kairoaraujo/goca/actions)
+
 Package GocA provides a Certificate Authority (CA) framework managing.
 
 GoCA is an API Framework that uses mainly crypto/x509 to manage Certificate
