@@ -287,16 +287,15 @@ func LoadFile(fileName string) ([]byte, error) {
 
 }
 
-// ListCertificates return a list of certificates folders
-func ListCertificates(CACommonName string) []string {
+func listDirs(path string) []string {
 	caPath, err := CAPathIsReady()
 	if err != nil {
 		return nil
 	}
 
-	var certificates []string
+	var dirs []string
 
-	files, err := filepath.Glob(caPath + "/" + CACommonName + "/certs/*")
+	files, err := filepath.Glob(caPath + "/" + path + "/*")
 	if err != nil {
 		return nil
 	}
@@ -305,34 +304,19 @@ func ListCertificates(CACommonName string) []string {
 		info, _ := os.Stat(f)
 		if info.IsDir() {
 			dirSplited := strings.Split(f, "/")
-			certificates = append(certificates, dirSplited[len(dirSplited)-1])
+			dirs = append(dirs, dirSplited[len(dirSplited)-1])
 		}
 	}
 
-	return certificates
+	return dirs
+}
+
+// ListCertificates return a list of certificates folders
+func ListCertificates(CACommonName string) []string {
+	return listDirs(CACommonName + "/certs")
 }
 
 // ListCAs return a list of certificates folders
 func ListCAs() []string {
-	caPath, err := CAPathIsReady()
-	if err != nil {
-		return nil
-	}
-
-	var caList []string
-
-	files, err := filepath.Glob(caPath + "/*")
-	if err != nil {
-		return nil
-	}
-
-	for _, f := range files {
-		info, _ := os.Stat(f)
-		if info.IsDir() {
-			dirSplited := strings.Split(f, "/")
-			caList = append(caList, dirSplited[len(dirSplited)-1])
-		}
-	}
-
-	return caList
+	return listDirs("")
 }
