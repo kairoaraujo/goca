@@ -311,3 +311,28 @@ func ListCertificates(CACommonName string) []string {
 
 	return certificates
 }
+
+// ListCAs return a list of certificates folders
+func ListCAs() []string {
+	caPath, err := CAPathIsReady()
+	if err != nil {
+		return nil
+	}
+
+	var caList []string
+
+	files, err := filepath.Glob(caPath + "/*")
+	if err != nil {
+		return nil
+	}
+
+	for _, f := range files {
+		info, _ := os.Stat(f)
+		if info.IsDir() {
+			dirSplited := strings.Split(f, "/")
+			caList = append(caList, dirSplited[len(dirSplited)-1])
+		}
+	}
+
+	return caList
+}
