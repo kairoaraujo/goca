@@ -76,6 +76,13 @@ func TestFunctionalIntermediateCACration(t *testing.T) {
 
 }
 
+func TestFunctionalListCAs(t *testing.T) {
+	if len(List()) == 0 {
+		t.Error("Empty list of CAs")
+	}
+	t.Log(List())
+}
+
 // RootCA signs the Intermediate CA
 func TestFunctionalRootCASignsIntermediateCA(t *testing.T) {
 

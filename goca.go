@@ -65,6 +65,11 @@ func Load(commonName string) (ca CA, err error) {
 
 }
 
+// List list all existent Certificate Authorities in $CAPATH
+func List() []string {
+	return storage.ListCAs()
+}
+
 // New creat new Certificate Authority
 func New(commonName string, identity Identity) (ca CA, err error) {
 	ca = CA{
