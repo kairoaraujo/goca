@@ -125,6 +125,16 @@ func LoadCSR(csrString []byte) (*x509.CertificateRequest, error) {
 	return csr, nil
 }
 
+// LoadCRL loads a Certificate Revocation List from a read file.
+//
+// Using ioutil.ReadFile() satisfyies the read file.
+func LoadCRL(crlString []byte) (*pkix.CertificateList, error) {
+	block, _ := pem.Decode([]byte(string(crlString)))
+	crl, _ := x509.ParseCRL(block.Bytes)
+
+	return crl, nil
+}
+
 // CreateRootCert creates a Root CA Certificate (self signed)
 func CreateRootCert(CACommonName, commonName, country, province, locality, organization, organizationalUnit, emailAddresses string, valid int, dnsNames []string, priv *rsa.PrivateKey, pub *rsa.PublicKey, creationType storage.CreationType) (cert []byte, err error) {
 

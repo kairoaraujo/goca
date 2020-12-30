@@ -26,9 +26,8 @@ import (
 
 // CA represents the basic CA data
 type CA struct {
-	CommonName string   // Certificate Authority Common Name
-	Identity   Identity // Certificate Authority Identity (Identity{})
-	Data       CAData   // Certificate Authority Data (CAData{})
+	CommonName string // Certificate Authority Common Name
+	Data       CAData // Certificate Authority Data (CAData{})
 }
 
 // Certificate represents a Certificate data
