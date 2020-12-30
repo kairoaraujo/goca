@@ -49,7 +49,7 @@ func TestFunctionalRootCACreation(t *testing.T) {
 func TestFunctionalIntermediateCACration(t *testing.T) {
 	os.Setenv("CAPATH", CaTestFolder)
 
-	rootCAIdentity := Identity{
+	intermediateCAIdentity := Identity{
 		Organization:       "Intermediate CA Company Inc.",
 		OrganizationalUnit: "Intermediate Certificates Management",
 		Country:            "NL",
@@ -58,7 +58,7 @@ func TestFunctionalIntermediateCACration(t *testing.T) {
 		Intermediate:       true,
 	}
 
-	IntermediateCA, err := New("go-itermediate.ca", rootCAIdentity)
+	IntermediateCA, err := New("go-itermediate.ca", intermediateCAIdentity)
 	if err != nil {
 		t.Log(err)
 		t.Errorf("Failing to create the CA")
@@ -91,6 +91,10 @@ func TestFunctionalRootCASignsIntermediateCA(t *testing.T) {
 	if err != nil {
 		t.Log(err)
 		t.Errorf("Failed to load Root CA")
+	}
+
+	if RootCA.GetCRL() == "" {
+		t.Error("Empty CRL")
 	}
 
 	t.Log(RootCA.GoCertificate().DNSNames)
@@ -168,7 +172,11 @@ func TestFunctionalRootCALoadCertificates(t *testing.T) {
 		t.Errorf("Failed to load Root CA")
 	}
 
-	intranetCert, _ := RootCA.LoadCertificate("intranet.go-root.ca")
+	intranetCert, err := RootCA.LoadCertificate("intranet.go-root.ca")
+	if err != nil {
+		fmt.Println(err)
+		t.Log(err)
+	}
 
 	if intranetCert.GetCACertificate() != "" {
 		t.Log("Failed to load intranet")
@@ -187,8 +195,8 @@ func TestFunctionalRevokeCertificate(t *testing.T) {
 	RootCA, _ := Load("go-root.ca")
 	intermediateCert, _ := RootCA.LoadCertificate("go-itermediate.ca")
 
-	if RootCA.Data.crl != nil {
-		t.Error("CRL is not nil")
+	if RootCA.Data.crl == nil {
+		t.Error("CRL is nil")
 	}
 
 	err := RootCA.RevokeCertificate("go-itermediate.ca")

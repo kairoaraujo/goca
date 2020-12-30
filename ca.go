@@ -168,12 +168,12 @@ func (c *CA) loadCA(commonName string) error {
 	caData := CAData{}
 
 	var (
-		caDir string = "/" + commonName + "/ca"
-		//caCertsDir      string = folderPath + "/certs"
+		caDir           string = "/" + commonName + "/ca"
 		keyString       []byte
 		publicKeyString []byte
 		csrString       []byte
 		certString      []byte
+		crlString       []byte
 		loadErr         error
 	)
 
@@ -221,6 +221,16 @@ func (c *CA) loadCA(commonName string) error {
 		}
 		caData.Certificate = string(certString)
 		caData.certificate = cert
+	}
+
+	var crlFile string = caDir + "/" + c.CommonName + crlExtension
+	if crlString, loadErr = storage.LoadFile(crlFile); loadErr == nil {
+		crl, err := cert.LoadCRL(crlString)
+		if err != nil {
+			return err
+		}
+		caData.CRL = string(crlString)
+		caData.crl = crl
 	}
 
 	c.Data = caData
