@@ -40,11 +40,11 @@ type Identity struct {
 // A CAData represents all the Certificate Authority Data as
 // RSA Keys, CRS, CRL, Certificates etc
 type CAData struct {
-	PrivateKey  string
-	PublicKey   string
-	CSR         string
-	Certificate string
-	CRL         string
+	CRL         string `json:"crl" example:"-----BEGIN X509 CRL-----...-----END X509 CRL-----\n"`                       // Revocation List string
+	Certificate string `json:"certificate" example:"-----BEGIN CERTIFICATE-----...-----END CERTIFICATE-----\n"`         // Certificate string
+	CSR         string `json:"csr" example:"-----BEGIN CERTIFICATE REQUEST-----...-----END CERTIFICATE REQUEST-----\n"` // Certificate Signing Request string
+	PrivateKey  string `json:"private_key" example:"-----BEGIN PRIVATE KEY-----...-----END PRIVATE KEY-----\n"`         // Private Key string
+	PublicKey   string `json:"public_key" example:"-----BEGIN PUBLIC KEY-----...-----END PUBLIC KEY-----\n"`            // Public Key string
 	privateKey  rsa.PrivateKey
 	certificate *x509.Certificate
 	publicKey   rsa.PublicKey
@@ -241,13 +241,13 @@ func (c *CA) loadCA(commonName string) error {
 func (c *CA) signCSR(csr x509.CertificateRequest, valid int) (certificate Certificate, err error) {
 
 	certificate = Certificate{
-		CommonName:    csr.Subject.CommonName,
+		commonName:    csr.Subject.CommonName,
 		csr:           csr,
 		caCertificate: c.Data.certificate,
 		CACertificate: c.Data.Certificate,
 	}
 
-	csrFile := "/" + c.CommonName + "/cert/" + certificate.CommonName + csrExtension
+	csrFile := "/" + c.CommonName + "/cert/" + certificate.commonName + csrExtension
 	if csrString, err := storage.LoadFile(csrFile); err == nil {
 		_, err := cert.LoadCSR(csrString)
 		if err != nil {

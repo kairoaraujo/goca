@@ -1,0 +1,165 @@
+{
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "GoCA Certificate Authority Management API.",
+        "title": "GoCA API",
+        "contact": {
+            "name": "GoCA API Issues Report",
+            "url": "http://github.com/kairoaraujo/goca/issues"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        }
+    },
+    "paths": {
+        "/api/v1/ca": {
+            "get": {
+                "description": "list all the Certificate Authorities",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CA"
+                ],
+                "summary": "List Certificate Authorities (CA)",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/ca/{cn}": {
+            "get": {
+                "description": "list the Certificate Authorities data",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CA"
+                ],
+                "summary": "List Certificate Authorities (CA) based in Common Name",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.CAData"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "goca.CAData": {
+            "type": "object",
+            "properties": {
+                "certificate": {
+                    "description": "Certificate string",
+                    "type": "string",
+                    "example": "-----BEGIN CERTIFICATE-----...-----END CERTIFICATE-----\n"
+                },
+                "crl": {
+                    "description": "Revocation List string",
+                    "type": "string",
+                    "example": "-----BEGIN X509 CRL-----...-----END X509 CRL-----\n"
+                },
+                "csr": {
+                    "description": "Certificate Signing Request string",
+                    "type": "string",
+                    "example": "-----BEGIN CERTIFICATE REQUEST-----...-----END CERTIFICATE REQUEST-----\n"
+                },
+                "private_key": {
+                    "description": "Private Key string",
+                    "type": "string",
+                    "example": "-----BEGIN PRIVATE KEY-----...-----END PRIVATE KEY-----\n"
+                },
+                "public_key": {
+                    "description": "Public Key string",
+                    "type": "string",
+                    "example": "-----BEGIN PUBLIC KEY-----...-----END PUBLIC KEY-----\n"
+                }
+            }
+        },
+        "models.CAData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.CAJSON"
+                },
+                "error": {
+                    "type": "string",
+                    "example": "Certificate Authority not found"
+                }
+            }
+        },
+        "models.CAJSON": {
+            "type": "object",
+            "properties": {
+                "certificates": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "go-itermediate.ca",
+                        "intranet.go-root.ca"
+                    ]
+                },
+                "common_name": {
+                    "type": "string",
+                    "example": "go-root.ca"
+                },
+                "csr": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "dns_names": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "www.go-root.ca",
+                        "secure.go-root.ca",
+                        "go-root.ca"
+                    ]
+                },
+                "files": {
+                    "$ref": "#/definitions/goca.CAData"
+                },
+                "intermediate": {
+                    "type": "boolean"
+                },
+                "revoked_certificates": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "38188836191244388427366318074605547405",
+                        "338255903472757769326153358304310617728"
+                    ]
+                },
+                "serial_number": {
+                    "type": "string",
+                    "example": "271064285308788403797280326571490069716"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Certificate Authority is ready."
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BasicAuth": {
+            "type": "basic"
+        }
+    }
+}

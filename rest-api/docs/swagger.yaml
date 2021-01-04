@@ -1,0 +1,119 @@
+definitions:
+  goca.CAData:
+    properties:
+      certificate:
+        description: Certificate string
+        example: |
+          -----BEGIN CERTIFICATE-----...-----END CERTIFICATE-----
+        type: string
+      crl:
+        description: Revocation List string
+        example: |
+          -----BEGIN X509 CRL-----...-----END X509 CRL-----
+        type: string
+      csr:
+        description: Certificate Signing Request string
+        example: |
+          -----BEGIN CERTIFICATE REQUEST-----...-----END CERTIFICATE REQUEST-----
+        type: string
+      private_key:
+        description: Private Key string
+        example: |
+          -----BEGIN PRIVATE KEY-----...-----END PRIVATE KEY-----
+        type: string
+      public_key:
+        description: Public Key string
+        example: |
+          -----BEGIN PUBLIC KEY-----...-----END PUBLIC KEY-----
+        type: string
+    type: object
+  models.CAData:
+    properties:
+      data:
+        $ref: '#/definitions/models.CAJSON'
+      error:
+        example: Certificate Authority not found
+        type: string
+    type: object
+  models.CAJSON:
+    properties:
+      certificates:
+        example:
+        - go-itermediate.ca
+        - intranet.go-root.ca
+        items:
+          type: string
+        type: array
+      common_name:
+        example: go-root.ca
+        type: string
+      csr:
+        example: false
+        type: boolean
+      dns_names:
+        example:
+        - www.go-root.ca
+        - secure.go-root.ca
+        - go-root.ca
+        items:
+          type: string
+        type: array
+      files:
+        $ref: '#/definitions/goca.CAData'
+      intermediate:
+        type: boolean
+      revoked_certificates:
+        example:
+        - "38188836191244388427366318074605547405"
+        - "338255903472757769326153358304310617728"
+        items:
+          type: string
+        type: array
+      serial_number:
+        example: "271064285308788403797280326571490069716"
+        type: string
+      status:
+        example: Certificate Authority is ready.
+        type: string
+    type: object
+info:
+  contact:
+    name: GoCA API Issues Report
+    url: http://github.com/kairoaraujo/goca/issues
+  description: GoCA Certificate Authority Management API.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: GoCA API
+paths:
+  /api/v1/ca:
+    get:
+      description: list all the Certificate Authorities
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: List Certificate Authorities (CA)
+      tags:
+      - CA
+  /api/v1/ca/{cn}:
+    get:
+      description: list the Certificate Authorities data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CAData'
+      summary: List Certificate Authorities (CA) based in Common Name
+      tags:
+      - CA
+schemes:
+- http
+- https
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"

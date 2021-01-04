@@ -32,12 +32,12 @@ type CA struct {
 
 // Certificate represents a Certificate data
 type Certificate struct {
-	CommonName    string                  // Certificate Common Name
-	Certificate   string                  // Certificate certificate string
-	CSR           string                  // Certificate Signing Request string
-	PrivateKey    string                  // Certificate Private Key string
-	PublicKey     string                  // Certificate Public Key string
-	CACertificate string                  // CA Certificate as string
+	commonName    string                  // Certificate Common Name
+	Certificate   string                  `json:"certificate" example:"-----BEGIN CERTIFICATE-----...-----END CERTIFICATE-----\n"`         // Certificate certificate string
+	CSR           string                  `json:"csr" example:"-----BEGIN CERTIFICATE REQUEST-----...-----END CERTIFICATE REQUEST-----\n"` // Certificate Signing Request string
+	PrivateKey    string                  `json:"private_key" example:"-----BEGIN PRIVATE KEY-----...-----END PRIVATE KEY-----\n"`         // Certificate Private Key string
+	PublicKey     string                  `json:"public_key" example:"-----BEGIN PUBLIC KEY-----...-----END PUBLIC KEY-----\n"`            // Certificate Public Key string
+	CACertificate string                  `json:"ca_certificate" example:"-----BEGIN CERTIFICATE-----...-----END CERTIFICATE-----\n"`      // CA Certificate as string
 	privateKey    rsa.PrivateKey          // Certificate Private Key object rsa.PrivateKey
 	publicKey     rsa.PublicKey           // Certificate Private Key object rsa.PublicKey
 	csr           x509.CertificateRequest // Certificate Sigining Request object x509.CertificateRequest
