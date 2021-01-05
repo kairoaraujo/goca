@@ -7,7 +7,7 @@
 Package GocA provides a Certificate Authority (CA) framework managing.
 
 GoCA is an API Framework that uses mainly crypto/x509 to manage Certificate
-Authorities.
+Authorities, such as a simple PKI.
 
 Using GoCA makes it easy to create a CA and issue certificates, signing
 Certificates Signing Request (CSR), and revoke certificate generating

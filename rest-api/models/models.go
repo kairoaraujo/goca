@@ -4,16 +4,34 @@ import (
 	"github.com/kairoaraujo/goca"
 )
 
-type CAData struct {
-	Data  CAJSON `json:"data"`
-	Error string `json:"error" example:"Certificate Authority not found"`
+type ResponseError struct {
+	Error string `json:"error" example:"error message"`
 }
 
-type CAJSON struct {
+type ResponseCA struct {
+	Data CABody `json:"data"`
+}
+
+type ResponseCertificates struct {
+	Data CertificateBody `json:"data"`
+}
+
+type ResponseList struct {
+	Data []string `json:"data" example:"cn1,cn2,cn3"`
+}
+
+type Payload struct {
+	CommonName string        `json:"common_name" example:"intranet.go-root" binding:"required"`
+	Identity   goca.Identity `json:"identity" binding:"required"`
+}
+
+type CABody struct {
 	CommonName                string      `json:"common_name" example:"go-root.ca"`
 	Intermediate              bool        `json:"intermediate"`
 	Status                    string      `json:"status" example:"Certificate Authority is ready."`
 	SerialNumber              string      `json:"serial_number" example:"271064285308788403797280326571490069716"`
+	IssueDate                 string      `json:"issue_date" example:"2021-01-06 10:31:43 +0000 UTC"`
+	ExpireDate                string      `json:"expire_date" example:"2022-01-06 10:31:43 +0000 UTC"`
 	DNSNames                  []string    `json:"dns_names" example:"www.go-root.ca,secure.go-root.ca,go-root.ca"`
 	CSR                       bool        `json:"csr" example:"false"`
 	Certificates              []string    `json:"certificates" example:"go-itermediate.ca,intranet.go-root.ca"`
@@ -21,9 +39,11 @@ type CAJSON struct {
 	Files                     goca.CAData `json:"files"`
 }
 
-type CertificateJSON struct {
-	CommonName   string           `json:"common_name"`
-	SerialNumber string           `json:"serial_number"`
-	DNSNames     []string         `json:"dns_names"`
+type CertificateBody struct {
+	CommonName   string           `json:"common_name" example:"intranet.go-root"`
+	SerialNumber string           `json:"serial_number" example:"338255903472757769326153358304310617728"`
+	IssueDate    string           `json:"issue_date" example:"2021-01-06 10:31:43 +0000 UTC"`
+	ExpireDate   string           `json:"expire_date" example:"2022-01-06 10:31:43 +0000 UTC"`
+	DNSNames     []string         `json:"dns_names" example:"w3.intranet.go-root.ca,intranet.go-root.ca"`
 	Files        goca.Certificate `json:"files"`
 }

@@ -150,7 +150,7 @@ func (c *CA) Status() string {
 		return "Intermediate Certificate Authority not ready, missing Certificate."
 
 	} else if c.Data.CSR != "" && c.Data.Certificate != "" {
-		return "Intermediate Certificate Authority ready."
+		return "Intermediate Certificate Authority is ready."
 
 	} else if c.Data.CSR == "" && c.Data.Certificate != "" {
 		return "Certificate Authority is ready."

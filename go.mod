@@ -6,6 +6,7 @@ require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-delve/delve v1.5.1 // indirect
+	github.com/google/uuid v1.1.4
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/peterh/liner v1.2.1 // indirect

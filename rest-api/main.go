@@ -22,6 +22,9 @@ import (
 func main() {
 
 	router := gin.Default()
+	// Set a lower memory limit for multipart forms (default is 32 MiB)
+	router.MaxMultipartMemory = 8 << 20 // 8 MiB
+	router.Use(gin.Logger())
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api := router.Group("/api")
@@ -29,11 +32,18 @@ func main() {
 
 	// Routes
 	v1.GET("/ca", controllers.GetCA)
-	v1.POST("/ca", controllers.NewCA)
+	v1.POST("/ca", controllers.AddCA)
 	v1.GET("/ca/:cn", controllers.GetCACommonName)
+	v1.POST("/ca/:cn/sign", controllers.SignCSR)
+	v1.POST("/ca/:cn/upload", controllers.UploadCertificateICA)
 	v1.GET("/ca/:cn/certificates", controllers.GetCertificates)
+	v1.POST("/ca/:cn/certificates", controllers.IssueCertificates)
+	v1.DELETE("/ca/:cn/certificates/:cert_cn", controllers.RevokeCertificate)
 	v1.GET("/ca/:cn/certificates/:cert_cn", controllers.GetCertificatesCommonName)
 
 	// Run the server
-	router.Run()
+	err := router.Run()
+	if err != nil {
+		panic(err)
+	}
 }
