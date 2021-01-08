@@ -459,7 +459,8 @@ var doc = `{
                 },
                 "intermediate": {
                     "description": "Intermendiate Certificate Authority (default is false)",
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "key_size": {
                     "description": "Key Bit Size (defaul: 2048)",
@@ -502,13 +503,13 @@ var doc = `{
                         "type": "string"
                     },
                     "example": [
-                        "go-itermediate.ca",
-                        "intranet.go-root.ca"
+                        "intranet.example.com",
+                        "w3.example.com"
                     ]
                 },
                 "common_name": {
                     "type": "string",
-                    "example": "go-root.ca"
+                    "example": "root-ca"
                 },
                 "csr": {
                     "type": "boolean",
@@ -520,9 +521,8 @@ var doc = `{
                         "type": "string"
                     },
                     "example": [
-                        "www.go-root.ca",
-                        "secure.go-root.ca",
-                        "go-root.ca"
+                        "ca.example.ca",
+                        "root-ca.example.com"
                     ]
                 },
                 "expire_date": {
@@ -602,7 +602,7 @@ var doc = `{
             "properties": {
                 "common_name": {
                     "type": "string",
-                    "example": "intranet.go-root"
+                    "example": "root-ca"
                 },
                 "identity": {
                     "$ref": "#/definitions/goca.Identity"

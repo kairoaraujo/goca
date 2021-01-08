@@ -115,11 +115,9 @@ func AddCA(c *gin.Context) {
 
 	var json models.Payload
 	if err := c.ShouldBindJSON(&json); err != nil {
-		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	_ = c.BindJSON(&json)
 
 	commonName, identity := payloadInit(json)
 
@@ -132,6 +130,7 @@ func AddCA(c *gin.Context) {
 	var caData models.CABody = getCAData(ca)
 
 	c.JSON(http.StatusOK, gin.H{"Data": caData})
+	return
 
 }
 

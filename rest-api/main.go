@@ -42,7 +42,7 @@ func main() {
 	v1.GET("/ca/:cn/certificates/:cert_cn", controllers.GetCertificatesCommonName)
 
 	// Run the server
-	err := router.Run()
+	err := router.Run(":80")
 	if err != nil {
 		panic(err)
 	}

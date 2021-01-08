@@ -4,14 +4,26 @@
 [![Build Status](https://github.com/kairoaraujo/goca/workflows/tests/badge.svg)](https://github.com/kairoaraujo/goca/actions)
 [![Go Reference](https://pkg.go.dev/badge/github.com/kairoaraujo/goca.svg)](https://pkg.go.dev/github.com/kairoaraujo/goca)
 
-Package GocA provides a Certificate Authority (CA) framework managing.
+Package GocA provides a Certificate Authority (CA) framework managing, a Simple PKI.
 
 GoCA is an API Framework that uses mainly crypto/x509 to manage Certificate
-Authorities, such as a simple PKI.
+Authorities.
 
 Using GoCA makes it easy to create a CA and issue certificates, signing
 Certificates Signing Request (CSR), and revoke certificate generating
 Certificates Request List (CRL).
+
+**Content**:
+
+- [GoCA Package](#GoCA-Package)
+- [GoCA HTTP REST API](#GoCA-HTTP-REST-API)
+
+
+## GoCA Package
+
+```shell
+go get http://github.com/kairoaraujo/goca
+```
 
 All files are store in the ``$CAPATH``. The ``$CAPATH`` is an environment
 variable that defines where all files (keys, certificates, etc.) are stored.
@@ -102,3 +114,10 @@ fmt.Println(intranetCert.GetCertificate())
 // Shows all CA Certificates
 fmt.Println(RootCA.ListCertificates())
 ```
+
+## GoCA HTTP REST API
+
+GoCA also provides an implementation using HTTP REST API.
+
+This is available in [``rest-api``](rest-api/README.md) folder.
+

@@ -1,9 +1,8 @@
-name: tests
+name: goca-tests
 
 on: [push]
 
 jobs:
-
   build:
     name: Build
     runs-on: ubuntu-latest
