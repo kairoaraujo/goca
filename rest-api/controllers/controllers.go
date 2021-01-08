@@ -130,7 +130,6 @@ func AddCA(c *gin.Context) {
 	var caData models.CABody = getCAData(ca)
 
 	c.JSON(http.StatusOK, gin.H{"Data": caData})
-	return
 
 }
 
