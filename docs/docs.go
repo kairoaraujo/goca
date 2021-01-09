@@ -73,7 +73,7 @@ var doc = `{
                 "tags": [
                     "CA"
                 ],
-                "summary": "Create new Certificate Authorities (CA) or Intermediate Certificate Authority (ICA)",
+                "summary": "Create new Certificate Authorities (CA) or Intermediate Certificate Authorities (ICA)",
                 "parameters": [
                     {
                         "description": "Add new Certificate Authority or Intermediate Certificate Authority",

@@ -101,7 +101,7 @@ func GetCA(c *gin.Context) {
 }
 
 // AddCA is the handler of Certificate Authorities endpoint
-// @Summary Create new Certificate Authorities (CA) or Intermediate Certificate Authority (ICA)
+// @Summary Create new Certificate Authorities (CA) or Intermediate Certificate Authorities (ICA)
 // @Description create a new Certificate Authority Root or Intermediate
 // @Tags CA
 // @Accept json

@@ -14,9 +14,19 @@ jobs:
       id: go
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
+
     - name: Get dependencies
       run: go mod download
+
     - name: Lint
       run: make lint
+
     - name: Test
       run: make test
+
+    - name: Check if API Docs are updated
+      run: |
+        cd rest-api
+        make doc
+        api_docs=$(git diff --name-only | grep ^docs || true )
+        if [[ $api_docs != "" ]]; then echo $api_docs; exit 1; fi

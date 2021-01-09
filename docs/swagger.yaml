@@ -268,7 +268,7 @@ paths:
           schema:
             type: Internal
       summary: Create new Certificate Authorities (CA) or Intermediate Certificate
-        Authority (ICA)
+        Authorities (ICA)
       tags:
       - CA
   /api/v1/ca/{cn}:
