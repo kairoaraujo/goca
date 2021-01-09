@@ -1,0 +1,29 @@
+name: GoCA REST API Docker test
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set up Go 1.15
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.15
+      id: go
+
+    - name: Set up Docker
+      uses: docker-practice/actions-setup-docker@v1
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Push to GitHub Packages
+      uses: docker/build-push-action@v2
+      with:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GPR_TOKEN }}
+        registry: docker.pkg.github.com
+        repository: kairoaraujo/goca/goca-rest-api
+        tag_with_ref: true

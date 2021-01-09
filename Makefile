@@ -8,4 +8,7 @@ lint:
 test:
 	go test -covermode=count -coverprofile=count.out -v ./...
 
+docker-image:
+	docker build -t goca-rest-api:latest .
+
 .PHONY: lint test mock

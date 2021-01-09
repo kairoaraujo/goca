@@ -25,26 +25,26 @@ const (
 
 // A Identity represents the Certificate Authority Identity Information
 type Identity struct {
-	Organization       string   // Organization name
-	OrganizationalUnit string   // Organizational Unit name
-	Country            string   // Country (two letters)
-	Locality           string   // Locality name
-	Province           string   // Province name
-	EmailAddresses     string   // Email Address
-	DNSNames           []string // DNS Names list
-	Intermediate       bool     // Intermendiate Certificate Authority (default is false)
-	KeyBitSize         int      // Key Bit Size (defaul: 2048)
-	Valid              int      // Minimum 1 day, maximum 825 days -- Default: 397
+	Organization       string   `json:"organization" example:"Company"`                         // Organization name
+	OrganizationalUnit string   `json:"organization_unit" example:"Security Management"`        // Organizational Unit name
+	Country            string   `json:"country" example:"NL"`                                   // Country (two letters)
+	Locality           string   `json:"locality" example:"Noord-Brabant"`                       // Locality name
+	Province           string   `json:"province" example:"Veldhoven"`                           // Province name
+	EmailAddresses     string   `json:"email" example:"sec@company.com"`                        // Email Address
+	DNSNames           []string `json:"dns_names" example:"ca.example.com,root-ca.example.com"` // DNS Names list
+	Intermediate       bool     `json:"intermediate" example:"false"`                           // Intermendiate Certificate Authority (default is false)
+	KeyBitSize         int      `json:"key_size" example:"2048"`                                // Key Bit Size (defaul: 2048)
+	Valid              int      `json:"valid" example:"365"`                                    // Minimum 1 day, maximum 825 days -- Default: 397
 }
 
 // A CAData represents all the Certificate Authority Data as
 // RSA Keys, CRS, CRL, Certificates etc
 type CAData struct {
-	PrivateKey  string
-	PublicKey   string
-	CSR         string
-	Certificate string
-	CRL         string
+	CRL         string `json:"crl" example:"-----BEGIN X509 CRL-----...-----END X509 CRL-----\n"`                       // Revocation List string
+	Certificate string `json:"certificate" example:"-----BEGIN CERTIFICATE-----...-----END CERTIFICATE-----\n"`         // Certificate string
+	CSR         string `json:"csr" example:"-----BEGIN CERTIFICATE REQUEST-----...-----END CERTIFICATE REQUEST-----\n"` // Certificate Signing Request string
+	PrivateKey  string `json:"private_key" example:"-----BEGIN PRIVATE KEY-----...-----END PRIVATE KEY-----\n"`         // Private Key string
+	PublicKey   string `json:"public_key" example:"-----BEGIN PUBLIC KEY-----...-----END PUBLIC KEY-----\n"`            // Public Key string
 	privateKey  rsa.PrivateKey
 	certificate *x509.Certificate
 	publicKey   rsa.PublicKey
@@ -61,6 +61,12 @@ var ErrCAGenerateExists = errors.New("a Certificate Authority with this common n
 
 // ErrCALoadNotFound means that CA was not found in $CAPATH to be loaded.
 var ErrCALoadNotFound = errors.New("the requested Certificate Authority does not exist")
+
+// ErrCertLoadNotFound means that certificate was not found in $CAPATH to be loaded.
+var ErrCertLoadNotFound = errors.New("the requested Certificate does not exist")
+
+// ErrCertRevoked means that certificate was not found in $CAPATH to be loaded.
+var ErrCertRevoked = errors.New("the requested Certificate is already revoked")
 
 func (c *CA) create(commonName string, id Identity) error {
 
@@ -241,13 +247,13 @@ func (c *CA) loadCA(commonName string) error {
 func (c *CA) signCSR(csr x509.CertificateRequest, valid int) (certificate Certificate, err error) {
 
 	certificate = Certificate{
-		CommonName:    csr.Subject.CommonName,
+		commonName:    csr.Subject.CommonName,
 		csr:           csr,
 		caCertificate: c.Data.certificate,
 		CACertificate: c.Data.Certificate,
 	}
 
-	csrFile := "/" + c.CommonName + "/cert/" + certificate.CommonName + csrExtension
+	csrFile := "/" + c.CommonName + "/cert/" + certificate.commonName + csrExtension
 	if csrString, err := storage.LoadFile(csrFile); err == nil {
 		_, err := cert.LoadCSR(csrString)
 		if err != nil {
@@ -349,7 +355,7 @@ func (c *CA) issueCertificate(commonName string, id Identity) (certificate Certi
 func (c *CA) loadCertificate(commonName string) (certificate Certificate, err error) {
 
 	var (
-		caCertsDir      string = "/" + c.CommonName + "/certs/" + commonName + "/"
+		caCertsDir      string = "/" + c.CommonName + "/certs/" + commonName
 		keyString       []byte
 		publicKeyString []byte
 		csrString       []byte
@@ -357,16 +363,20 @@ func (c *CA) loadCertificate(commonName string) (certificate Certificate, err er
 		loadErr         error
 	)
 
+	if _, err := os.Stat(os.Getenv("CAPATH") + caCertsDir); os.IsNotExist(err) {
+		return certificate, ErrCertLoadNotFound
+	}
+
 	certificate.CACertificate = c.Data.Certificate
 	certificate.caCertificate = c.Data.certificate
 
-	if keyString, loadErr = storage.LoadFile(caCertsDir + "private.pem"); loadErr == nil {
+	if keyString, loadErr = storage.LoadFile(caCertsDir + "/key.pem"); loadErr == nil {
 		privateKey, _ := key.LoadPrivateKey(keyString)
 		certificate.PrivateKey = string(keyString)
 		certificate.privateKey = *privateKey
 	}
 
-	if publicKeyString, loadErr = storage.LoadFile(caCertsDir + "/public.pem"); loadErr == nil {
+	if publicKeyString, loadErr = storage.LoadFile(caCertsDir + "/key.pub"); loadErr == nil {
 		publicKey, _ := key.LoadPublicKey(publicKeyString)
 		certificate.PublicKey = string(publicKeyString)
 		certificate.publicKey = *publicKey
@@ -396,8 +406,15 @@ func (c *CA) revokeCertificate(certificate *x509.Certificate) error {
 	var caDir string = "/" + c.CommonName + "/ca"
 	var crlString []byte
 
-	if c.Data.crl != nil {
-		revokedCerts = c.Data.crl.TBSCertList.RevokedCertificates
+	currentCRL := c.GoCRL()
+	if currentCRL != nil {
+		for _, serialNumber := range currentCRL.TBSCertList.RevokedCertificates {
+			if serialNumber.SerialNumber.String() == certificate.SerialNumber.String() {
+				return ErrCertRevoked
+			}
+		}
+
+		revokedCerts = currentCRL.TBSCertList.RevokedCertificates
 	}
 
 	newCertRevoke := pkix.RevokedCertificate{
