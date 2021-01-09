@@ -35,11 +35,3 @@ jobs:
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
         repository: kairoaraujo/goca-test
         tag_with_ref: true
-
-    - name: Docker Hub Description
-      uses: peter-evans/dockerhub-description@v2
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_PASSWORD }}
-        readme-filepath: ./DOCKER-README.md
-        repository: kairoaraujo/goca-test
