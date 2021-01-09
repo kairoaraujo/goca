@@ -12,6 +12,7 @@ jobs:
       with:
         go-version: 1.15
       id: go
+
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
@@ -26,6 +27,7 @@ jobs:
 
     - name: Check if API Docs are updated
       run: |
+        export PATH=$PATH:$(go env GOPATH)/bin
         cd rest-api
         make doc
         api_docs=$(git diff --name-only | grep ^docs || true )
