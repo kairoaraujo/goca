@@ -1,9 +1,9 @@
-name: goca-tests
+name: GoCA Testes
 
 on: [push]
 
 jobs:
-  build:
+  tests:
     name: Build
     runs-on: ubuntu-latest
     steps:

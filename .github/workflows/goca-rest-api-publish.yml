@@ -1,4 +1,4 @@
-name: goca-rest-api
+name: GoCA REST API Docker publish
 
 on:
   push:
