@@ -27,3 +27,11 @@ jobs:
         registry: docker.pkg.github.com
         repository: kairoaraujo/goca/goca-rest-api
         tag_with_ref: true
+        
+    - name: Docker Hub Description
+      uses: peter-evans/dockerhub-description@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        repository: kairoaraujo/goca
+        readme-filepath: ./DOCKER-README.md
