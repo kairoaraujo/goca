@@ -3,8 +3,10 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/kairoaraujo/goca)](https://goreportcard.com/report/github.com/kairoaraujo/goca)
 [![Build Status](https://github.com/kairoaraujo/goca/workflows/tests/badge.svg)](https://github.com/kairoaraujo/goca/actions)
 [![Go Reference](https://pkg.go.dev/badge/github.com/kairoaraujo/goca.svg)](https://pkg.go.dev/github.com/kairoaraujo/goca)
+[![Docker Pulls](https://img.shields.io/docker/pulls/kairoaraujo/goca.svg?maxAge=604800)](https://hub.docker.com/r/kairoaraujo/goca/)
 
-Package GocA provides a Certificate Authority (CA) framework managing, a Simple PKI.
+
+GocA provides a Certificate Authority (CA) framework managing, a Simple PKI.
 
 GoCA is a framework that uses mainly crypto/x509 to manage Certificate
 Authorities.
@@ -15,9 +17,37 @@ Certificates Request List (CRL).
 
 **Content**:
 
+- [GoCA Docker](#GoCA-Docker-HTTP-REST-API)
 - [GoCA Package](#GoCA-Package)
-- [GoCA HTTP REST API](#GoCA-HTTP-REST-API)
+- [GoCA HTTP REST API package](#GoCA-HTTP-REST-API)
 
+## GoCA Docker Container
+
+GoCA Docker is HTTP Rest API that uses mainly crypto/x509 to manage Certificate Authorities and Certificates such
+as a simple PKI Service.
+
+> NOTE: Do not expose the GoCA HTTP REST API service directly. Use it behind to some
+Authentication/Authorization service.
+
+### Docker Container
+#### Stable
+```
+$ docker run -p 80:80 kairoaraujo/goca:tag
+```
+
+The API Documentation is online available at http://kairoaraujo.github.io/goca/.
+
+### Where store the data
+
+> The GoCA data (certificate, keys, etc.) is in ``/goca/data``; make sure you have a protected volume for this data.
+
+Create a data directory on a suitable volume on your host system, e.g. /my/own/datadir.
+
+Start your GoCA container like this:
+
+````
+$ docker run -p 80:80 -v /my/own/datadir:/goca/data kairoaraujo/goca:tag
+````
 
 ## GoCA Package
 
