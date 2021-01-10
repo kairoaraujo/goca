@@ -17,7 +17,7 @@ Certificates Request List (CRL).
 
 **Content**:
 
-- [GoCA Docker](#GoCA-Docker-HTTP-REST-API)
+- [GoCA Docker Container](#GoCA-Docker-Container)
 - [GoCA Package](#GoCA-Package)
 - [GoCA HTTP REST API package](#GoCA-HTTP-REST-API)
 
@@ -149,5 +149,5 @@ fmt.Println(RootCA.ListCertificates())
 
 GoCA also provides an implementation using HTTP REST API.
 
-This is available in [``rest-api``](rest-api/README.md) folder.
+This is available in [``rest-api``](rest-api/) folder.
 
