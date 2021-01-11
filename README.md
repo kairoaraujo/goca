@@ -30,7 +30,6 @@ as a simple PKI Service.
 Authentication/Authorization service.
 
 ### Docker Container
-#### Stable
 ```
 $ docker run -p 80:80 kairoaraujo/goca:tag
 ```
