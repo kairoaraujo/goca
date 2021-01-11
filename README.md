@@ -21,33 +21,6 @@ Certificates Request List (CRL).
 - [GoCA Package](#GoCA-Package)
 - [GoCA HTTP REST API package](#GoCA-HTTP-REST-API)
 
-## GoCA Docker Container
-
-GoCA Docker is HTTP Rest API that uses mainly crypto/x509 to manage Certificate Authorities and Certificates such
-as a simple PKI Service.
-
-> NOTE: Do not expose the GoCA HTTP REST API service directly. Use it behind to some
-Authentication/Authorization service.
-
-### Docker Container
-```
-$ docker run -p 80:80 kairoaraujo/goca:tag
-```
-
-The API Documentation is online available at http://kairoaraujo.github.io/goca/.
-
-### Where store the data
-
-> The GoCA data (certificate, keys, etc.) is in ``/goca/data``; make sure you have a protected volume for this data.
-
-Create a data directory on a suitable volume on your host system, e.g. /my/own/datadir.
-
-Start your GoCA container like this:
-
-````
-$ docker run -p 80:80 -v /my/own/datadir:/goca/data kairoaraujo/goca:tag
-````
-
 ## GoCA Package
 
 ```shell
@@ -150,3 +123,13 @@ GoCA also provides an implementation using HTTP REST API.
 
 This is available in [``rest-api``](rest-api/) folder.
 
+## GoCA Docker Container
+
+GoCA Docker ready to use HTTP Rest API that uses mainly crypto/x509 to manage Certificate Authorities and Certificates such
+as a simple PKI Service.
+
+The API Documentation is online available at http://kairoaraujo.github.io/goca/.
+
+More details in [Docker README](DOCKER_README.md).
+
+GoCA Docker Image is available at https://hub.docker.com/r/kairoaraujo/goca/

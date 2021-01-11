@@ -45,3 +45,11 @@ jobs:
       with:
         push: true
         tags: kairoaraujo/goca:dev
+
+    - name: Update repo description
+      uses: peter-evans/dockerhub-description@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        repository: kairoaraujo/goca
+        readme-filepath: ./DOCKER_README.md
