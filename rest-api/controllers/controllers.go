@@ -374,8 +374,6 @@ func IssueCertificates(c *gin.Context) {
 		return
 	}
 
-	_ = c.BindJSON(&json)
-
 	commonName, identity := payloadInit(json)
 
 	certificate, err := ca.IssueCertificate(commonName, identity)
