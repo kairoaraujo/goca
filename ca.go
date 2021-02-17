@@ -7,7 +7,6 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
-	"fmt"
 	"os"
 	"time"
 
@@ -329,7 +328,6 @@ func (c *CA) issueCertificate(commonName string, id Identity) (certificate Certi
 
 	certificate.csr = *csr
 	certificate.CSR = string(csrString)
-	fmt.Println(csr.Subject.CommonName)
 	certBytes, err := cert.CASignCSR(c.CommonName, *csr, c.Data.certificate, &c.Data.privateKey, id.Valid, storage.CreationTypeCertificate)
 	if err != nil {
 		return certificate, err
