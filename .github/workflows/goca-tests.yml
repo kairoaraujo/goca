@@ -1,16 +1,16 @@
 name: GoCA Testes
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   tests:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - name: Set up Go 1.15
+    - name: Set up Go 1.17
       uses: actions/setup-go@v1
       with:
-        go-version: 1.15
+        go-version: 1.17
       id: go
 
     - name: Check out code into the Go module directory
@@ -25,10 +25,5 @@ jobs:
     - name: Test
       run: make test
 
-    - name: Check if API Docs are updated
-      run: |
-        export PATH=$PATH:$(go env GOPATH)/bin
-        cd rest-api
-        make doc
-        api_docs=$(git diff --name-only | grep ^docs || true )
-        if [[ $api_docs != "" ]]; then echo $api_docs; exit 1; fi
+    - name: Upload coverage to Codecov
+      run: bash <(curl -s https://codecov.io/bash)

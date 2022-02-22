@@ -6,7 +6,7 @@ lint:
 	./bin/golangci-lint run -e gosec
 
 test:
-	go test -covermode=count -coverprofile=count.out -v ./...
+	go test -covermode=count -coverprofile=coverage.out -v ./...
 
 docker-image:
 	docker build -t goca-rest-api:latest .
