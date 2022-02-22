@@ -1,6 +1,6 @@
 name: GoCA Testes
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   tests:
@@ -24,6 +24,9 @@ jobs:
 
     - name: Test
       run: make test
+
+    - name: Upload coverage to Codecov
+      run: bash <(curl -s https://codecov.io/bash)
 
     - name: Check if API Docs are updated
       run: |
