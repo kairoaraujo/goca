@@ -7,6 +7,7 @@ import (
 )
 
 const CaTestFolder string = "./DoNotUseThisCAPATHTestOnly"
+const GoodKeyPerms os.FileMode = 0600
 
 func tearDown() {
 	os.Unsetenv("GOCATEST")
@@ -41,12 +42,20 @@ func TestFunctionalRootCACreation(t *testing.T) {
 		t.Errorf(RootCompanyCA.Status())
 	}
 
+	fi, err := os.Stat(CaTestFolder + "/go-root.ca/ca/key.pem")
+	if err != nil {
+		t.Errorf("key.pem does not exist for the CA")
+	}
+	if fi.Mode() != GoodKeyPerms {
+		t.Errorf("Expected key.pem permissions " + fmt.Sprint(GoodKeyPerms) + " but got: " + fmt.Sprint(fi.Mode()))
+	}
+
 	t.Log("Tested Creating a Root CA")
 
 }
 
 // Creates a Intermediate CA
-func TestFunctionalIntermediateCACration(t *testing.T) {
+func TestFunctionalIntermediateCACreation(t *testing.T) {
 	os.Setenv("CAPATH", CaTestFolder)
 
 	intermediateCAIdentity := Identity{
@@ -70,6 +79,14 @@ func TestFunctionalIntermediateCACration(t *testing.T) {
 
 	if IntermediateCA.Status() != "Intermediate Certificate Authority not ready, missing Certificate." {
 		t.Errorf(IntermediateCA.Status())
+	}
+
+	fi, err := os.Stat(CaTestFolder + "/go-itermediate.ca/ca/key.pem")
+	if err != nil {
+		t.Errorf("key.pem does not exist for the CA")
+	}
+	if fi.Mode() != GoodKeyPerms {
+		t.Errorf("Expected key.pem permissions " + fmt.Sprint(GoodKeyPerms) + " but got: " + fmt.Sprint(fi.Mode()))
 	}
 
 	t.Log("Tested Creating a Intermediate CA")
@@ -162,6 +179,13 @@ func TestFunctionalRootCAIssueNewCertificate(t *testing.T) {
 		t.Error("The CA Certificate is not the same as the Certificate CA Certificate")
 	}
 
+	fi, err := os.Stat(CaTestFolder + "/go-root.ca/certs/intranet.go-root.ca/key.pem")
+	if err != nil {
+		t.Errorf("key.pem does not exist for the identity")
+	}
+	if fi.Mode() != GoodKeyPerms {
+		t.Errorf("Expected key.pem permissions " + fmt.Sprint(GoodKeyPerms) + " but got: " + fmt.Sprint(fi.Mode()))
+	}
 }
 
 func TestFunctionalRootCALoadCertificates(t *testing.T) {
