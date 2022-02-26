@@ -220,6 +220,34 @@ func TestFunctionalRootCALoadCertificates(t *testing.T) {
 
 }
 
+func TestFunctionalIntermediateCAIssueNewCertificate(t *testing.T) {
+	id := Identity{
+		Organization:       "An Organization",
+		OrganizationalUnit: "An Organizational Unit",
+		Country:            "NL",
+		Locality:           "Noord-Brabant",
+		Province:           "Veldhoven",
+		Intermediate:       false,
+		DNSNames:           []string{"anorg.go-intermediate.ca"},
+	}
+
+	interCA, err := Load("go-intermediate.ca")
+	if err != nil {
+		t.Errorf("Failed to load intermediate CA")
+	}
+
+	idCert, err := interCA.IssueCertificate("anorg.go-intermediate.ca", id)
+	if err != nil {
+		t.Error("Failed to issue certificate anorg.go-intermediate.ca")
+	}
+
+	fmt.Println(interCA.ListCertificates())
+
+	if interCA.GetCertificate() != idCert.GetCACertificate() {
+		t.Error("CA certificate mismatch between intermediate CA and issued certificate.")
+	}
+}
+
 func TestFunctionalRevokeCertificate(t *testing.T) {
 	RootCA, _ := Load("go-root.ca")
 	intermediateCert, _ := RootCA.LoadCertificate("go-intermediate.ca")
