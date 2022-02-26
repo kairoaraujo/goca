@@ -67,7 +67,7 @@ func TestFunctionalIntermediateCACreation(t *testing.T) {
 		Intermediate:       true,
 	}
 
-	IntermediateCA, err := New("go-itermediate.ca", intermediateCAIdentity)
+	IntermediateCA, err := New("go-intermediate.ca", intermediateCAIdentity)
 	if err != nil {
 		t.Log(err)
 		t.Errorf("Failing to create the CA")
@@ -81,7 +81,7 @@ func TestFunctionalIntermediateCACreation(t *testing.T) {
 		t.Errorf(IntermediateCA.Status())
 	}
 
-	fi, err := os.Stat(CaTestFolder + "/go-itermediate.ca/ca/key.pem")
+	fi, err := os.Stat(CaTestFolder + "/go-intermediate.ca/ca/key.pem")
 	if err != nil {
 		t.Errorf("key.pem does not exist for the CA")
 	}
@@ -121,7 +121,7 @@ func TestFunctionalRootCASignsIntermediateCA(t *testing.T) {
 	}
 
 	t.Log("Tested load Intermediate CA")
-	IntermediateCA, err := Load("go-itermediate.ca")
+	IntermediateCA, err := Load("go-intermediate.ca")
 
 	if err != nil {
 		t.Log(err)
@@ -205,7 +205,7 @@ func TestFunctionalRootCALoadCertificates(t *testing.T) {
 	if intranetCert.GetCACertificate() != "" {
 		t.Log("Failed to load intranet")
 	}
-	intermediateCert, _ := RootCA.LoadCertificate("go-itermediate.ca")
+	intermediateCert, _ := RootCA.LoadCertificate("go-intermediate.ca")
 
 	if RootCA.GetCertificate() != intermediateCert.GetCACertificate() {
 		t.Log(RootCA.GetCertificate())
@@ -217,13 +217,13 @@ func TestFunctionalRootCALoadCertificates(t *testing.T) {
 
 func TestFunctionalRevokeCertificate(t *testing.T) {
 	RootCA, _ := Load("go-root.ca")
-	intermediateCert, _ := RootCA.LoadCertificate("go-itermediate.ca")
+	intermediateCert, _ := RootCA.LoadCertificate("go-intermediate.ca")
 
 	if RootCA.Data.crl == nil {
 		t.Error("CRL is nil")
 	}
 
-	err := RootCA.RevokeCertificate("go-itermediate.ca")
+	err := RootCA.RevokeCertificate("go-intermediate.ca")
 	if err != nil {
 		t.Error("Failed to revoke certificate")
 	}
