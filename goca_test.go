@@ -146,6 +146,11 @@ func TestFunctionalRootCASignsIntermediateCA(t *testing.T) {
 	}
 	t.Log("Tested Sign CSR with correct valid days (365)")
 
+	_, err = os.Stat(CaTestFolder + "/go-intermediate.ca/ca/go-intermediate.ca.crt")
+	if err != nil {
+		t.Errorf("Intermediate CA certificate not in intermediate CA directory")
+	}
+
 	fmt.Println(RootCA.ListCertificates())
 }
 
