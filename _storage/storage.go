@@ -290,6 +290,18 @@ func LoadFile(fileName string) ([]byte, error) {
 
 }
 
+// LinkFile creates a symlink from oldFile to newFile under the $CAPATH hierarchy.
+func LinkFile(oldFile string, newFile string) error {
+	caPath, err := CAPathIsReady()
+	if err != nil {
+		return err
+	}
+
+	err = os.Symlink(oldFile, caPath+"/"+newFile)
+
+	return err
+}
+
 func listDirs(path string) []string {
 	caPath, err := CAPathIsReady()
 	if err != nil {
