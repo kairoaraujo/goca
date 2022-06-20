@@ -27,6 +27,7 @@ import (
 	"encoding/asn1"
 	"encoding/pem"
 	"errors"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -38,6 +39,8 @@ const (
 	PEMFile       = "key.pem"
 	PublicPEMFile = "key.pub"
 )
+
+var ErrIncompleteCopy = errors.New("file copy was incomplete")
 
 func checkError(err error) error {
 	if err != nil {
@@ -289,6 +292,46 @@ func LoadFile(filePath ...string) ([]byte, error) {
 
 	return fileData, nil
 
+}
+
+// CopyFile copies the specified src file to the given destination.
+// Both paths are relative to the $CAPATH hierarchy.
+func CopyFile(src, dest string) error {
+	caPath, err := CAPathIsReady()
+	if err != nil {
+		return err
+	}
+
+	srcPath := filepath.Join(caPath, src)
+	destPath := filepath.Join(caPath, dest)
+
+	in, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+
+	inStat, err := in.Stat()
+	if err != nil {
+		return err
+	}
+
+	out, err := os.OpenFile(destPath, os.O_RDWR|os.O_CREATE, inStat.Mode())
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	written, err := io.Copy(out, in)
+	if err != nil {
+		return err
+	}
+
+	if written != inStat.Size() {
+		return ErrIncompleteCopy
+	}
+
+	return nil
 }
 
 func listDirs(paths ...string) []string {
