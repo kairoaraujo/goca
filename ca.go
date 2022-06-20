@@ -281,7 +281,7 @@ func (c *CA) signCSR(csr x509.CertificateRequest, valid int) (certificate Certif
 
 	// Are we signing an intermediate CA? See issue #8.
 	caCsrFile := "/" + certificate.commonName + "/ca/" + certificate.commonName + csrExtension
-	if _, err = storage.LoadFile(caCsrFile); err == nil {
+	if _, err := storage.LoadFile(caCsrFile); err == nil {
 		// Use a relative path to handle case when $CAPATH is relative, rather than absolute.
 		certFile := "../../" + c.CommonName + "/certs/" + certificate.commonName + "/" + certificate.commonName + certExtension
 		linkFile := "/" + certificate.commonName + "/ca/" + certificate.commonName + certExtension
