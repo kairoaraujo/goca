@@ -8,6 +8,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"os"
+	"path/filepath"
 	"time"
 
 	storage "github.com/kairoaraujo/goca/_storage"
@@ -278,6 +279,23 @@ func (c *CA) signCSR(csr x509.CertificateRequest, valid int) (certificate Certif
 	}
 
 	certificate.certificate = cert
+
+	// if we are signing another CA, we need to make sure the certificate file also
+	// exists under the signed CA's $CAPATH directory, not just the signing CA's directory.
+	knownCAs := List()
+	for _, knownCA := range knownCAs {
+		if knownCA == certificate.commonName {
+			srcPath := filepath.Join(c.CommonName, "certs", certificate.commonName, certificate.commonName+certExtension)
+			destPath := filepath.Join(certificate.commonName, "ca", certificate.commonName+certExtension)
+
+			err = storage.CopyFile(srcPath, destPath)
+			if err != nil {
+				return certificate, err
+			}
+
+			break
+		}
+	}
 
 	return certificate, err
 
