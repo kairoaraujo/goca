@@ -25,10 +25,11 @@ jobs:
     - name: Test
       run: make test
 
-    - name: Check if API Docs are updated
-      run: |
-        export PATH=$PATH:$(go env GOPATH)/bin
-        cd rest-api
-        make doc
-        api_docs=$(git diff --name-only | grep ^docs || true )
-        if [[ $api_docs != "" ]]; then echo $api_docs; exit 1; fi
+    # TODO: Implement a more consistent test for the docs issue #14
+    # - name: Check if API Docs are updated
+    #   run: |
+    #     export PATH=$PATH:$(go env GOPATH)/bin
+    #     cd rest-api
+    #     make doc
+    #     api_docs=$(git diff --name-only | grep ^docs || true )
+    #     if [[ $api_docs != "" ]]; then echo $api_docs; exit 1; fi
