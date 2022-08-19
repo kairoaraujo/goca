@@ -8,6 +8,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"os"
+	"path/filepath"
 	"time"
 
 	storage "github.com/kairoaraujo/goca/_storage"
@@ -78,8 +79,8 @@ func (c *CA) create(commonName string, id Identity) error {
 	}
 
 	var (
-		caDir           string = "/" + commonName + "/ca"
-		caCertsDir      string = "/" + commonName + "/certs"
+		caDir           string = filepath.Join(commonName, "ca")
+		caCertsDir      string = filepath.Join(commonName, "certs")
 		keyString       []byte
 		publicKeyString []byte
 		csrString       []byte
@@ -91,11 +92,11 @@ func (c *CA) create(commonName string, id Identity) error {
 		return ErrCAMissingInfo
 	}
 
-	if err := storage.MakeFolder(os.Getenv("CAPATH") + caDir); err != nil {
+	if err := storage.MakeFolder(os.Getenv("CAPATH"), caDir); err != nil {
 		return err
 	}
 
-	if err := storage.MakeFolder(os.Getenv("CAPATH") + caCertsDir); err != nil {
+	if err := storage.MakeFolder(os.Getenv("CAPATH"), caCertsDir); err != nil {
 		return err
 	}
 
@@ -104,11 +105,11 @@ func (c *CA) create(commonName string, id Identity) error {
 		return err
 	}
 
-	if keyString, err = storage.LoadFile(caDir + "/key.pem"); err != nil {
+	if keyString, err = storage.LoadFile(caDir, "key.pem"); err != nil {
 		keyString = []byte{}
 	}
 
-	if publicKeyString, err = storage.LoadFile(caCertsDir + "/key.pub"); err != nil {
+	if publicKeyString, err = storage.LoadFile(caCertsDir, "key.pub"); err != nil {
 		publicKeyString = []byte{}
 	}
 
@@ -127,7 +128,7 @@ func (c *CA) create(commonName string, id Identity) error {
 		}
 		certificate, _ := x509.ParseCertificate(certBytes)
 
-		if certString, err = storage.LoadFile(caDir + "/" + commonName + certExtension); err != nil {
+		if certString, err = storage.LoadFile(caDir, commonName+certExtension); err != nil {
 			certString = []byte{}
 		}
 
@@ -142,7 +143,7 @@ func (c *CA) create(commonName string, id Identity) error {
 			}
 		}
 
-		if crlString, err = storage.LoadFile(caDir + "/" + commonName + crlExtension); err != nil {
+		if crlString, err = storage.LoadFile(caDir, commonName+crlExtension); err != nil {
 			crlString = []byte{}
 		}
 
@@ -154,7 +155,7 @@ func (c *CA) create(commonName string, id Identity) error {
 			return err
 		}
 		csr, _ := x509.ParseCertificateRequest(csrBytes)
-		if csrString, err = storage.LoadFile(caDir + "/" + commonName + csrExtension); err != nil {
+		if csrString, err = storage.LoadFile(caDir, commonName+csrExtension); err != nil {
 			csrString = []byte{}
 		}
 
@@ -173,7 +174,7 @@ func (c *CA) loadCA(commonName string) error {
 	caData := CAData{}
 
 	var (
-		caDir           string = "/" + commonName + "/ca"
+		caDir           string = filepath.Join(commonName, "ca")
 		keyString       []byte
 		publicKeyString []byte
 		csrString       []byte
@@ -188,7 +189,7 @@ func (c *CA) loadCA(commonName string) error {
 		return ErrCALoadNotFound
 	}
 
-	if keyString, loadErr = storage.LoadFile(caDir + "/key.pem"); loadErr == nil {
+	if keyString, loadErr = storage.LoadFile(caDir, "key.pem"); loadErr == nil {
 		privateKey, err := key.LoadPrivateKey(keyString)
 		if err != nil {
 			return err
@@ -199,7 +200,7 @@ func (c *CA) loadCA(commonName string) error {
 		return loadErr
 	}
 
-	if publicKeyString, loadErr = storage.LoadFile(caDir + "/key.pub"); loadErr == nil {
+	if publicKeyString, loadErr = storage.LoadFile(caDir, "key.pub"); loadErr == nil {
 		publicKey, err := key.LoadPublicKey(publicKeyString)
 		if err != nil {
 			return err
@@ -210,7 +211,7 @@ func (c *CA) loadCA(commonName string) error {
 		return loadErr
 	}
 
-	if csrString, loadErr = storage.LoadFile(caDir + "/" + commonName + csrExtension); loadErr == nil {
+	if csrString, loadErr = storage.LoadFile(caDir, commonName+csrExtension); loadErr == nil {
 		csr, err := cert.LoadCSR(csrString)
 		if err != nil {
 			return err
@@ -219,7 +220,7 @@ func (c *CA) loadCA(commonName string) error {
 		caData.csr = csr
 	}
 
-	if certString, loadErr = storage.LoadFile(caDir + "/" + commonName + certExtension); loadErr == nil {
+	if certString, loadErr = storage.LoadFile(caDir, commonName+certExtension); loadErr == nil {
 		cert, err := cert.LoadCert(certString)
 		if err != nil {
 			return err
@@ -228,8 +229,7 @@ func (c *CA) loadCA(commonName string) error {
 		caData.certificate = cert
 	}
 
-	var crlFile string = caDir + "/" + c.CommonName + crlExtension
-	if crlString, loadErr = storage.LoadFile(crlFile); loadErr == nil {
+	if crlString, loadErr = storage.LoadFile(caDir, c.CommonName+crlExtension); loadErr == nil {
 		crl, err := cert.LoadCRL(crlString)
 		if err != nil {
 			return err
@@ -252,8 +252,7 @@ func (c *CA) signCSR(csr x509.CertificateRequest, valid int) (certificate Certif
 		CACertificate: c.Data.Certificate,
 	}
 
-	csrFile := "/" + c.CommonName + "/cert/" + certificate.commonName + csrExtension
-	if csrString, err := storage.LoadFile(csrFile); err == nil {
+	if csrString, err := storage.LoadFile(c.CommonName, "cert", certificate.commonName+csrExtension); err == nil {
 		_, err := cert.LoadCSR(csrString)
 		if err != nil {
 			return certificate, err
@@ -286,7 +285,7 @@ func (c *CA) signCSR(csr x509.CertificateRequest, valid int) (certificate Certif
 func (c *CA) issueCertificate(commonName string, id Identity) (certificate Certificate, err error) {
 
 	var (
-		caCertsDir      string = "/" + c.CommonName + "/certs/"
+		caCertsDir      string = filepath.Join(c.CommonName, "certs")
 		keyString       []byte
 		publicKeyString []byte
 		csrString       []byte
@@ -300,11 +299,11 @@ func (c *CA) issueCertificate(commonName string, id Identity) (certificate Certi
 		return certificate, err
 	}
 
-	if keyString, err = storage.LoadFile(caCertsDir + commonName + "/key.pem"); err != nil {
+	if keyString, err = storage.LoadFile(caCertsDir, commonName, "key.pem"); err != nil {
 		keyString = []byte{}
 	}
 
-	if publicKeyString, err = storage.LoadFile(caCertsDir + commonName + "/key.pub"); err != nil {
+	if publicKeyString, err = storage.LoadFile(caCertsDir, commonName, "key.pub"); err != nil {
 		publicKeyString = []byte{}
 	}
 
@@ -322,7 +321,7 @@ func (c *CA) issueCertificate(commonName string, id Identity) (certificate Certi
 	}
 
 	csr, _ := x509.ParseCertificateRequest(csrBytes)
-	if csrString, err = storage.LoadFile(caCertsDir + commonName + "/" + commonName + csrExtension); err != nil {
+	if csrString, err = storage.LoadFile(caCertsDir, commonName, commonName+csrExtension); err != nil {
 		csrString = []byte{}
 	}
 
@@ -353,7 +352,7 @@ func (c *CA) issueCertificate(commonName string, id Identity) (certificate Certi
 func (c *CA) loadCertificate(commonName string) (certificate Certificate, err error) {
 
 	var (
-		caCertsDir      string = "/" + c.CommonName + "/certs/" + commonName
+		caCertsDir      string = filepath.Join(c.CommonName, "certs", commonName)
 		keyString       []byte
 		publicKeyString []byte
 		csrString       []byte
@@ -361,32 +360,32 @@ func (c *CA) loadCertificate(commonName string) (certificate Certificate, err er
 		loadErr         error
 	)
 
-	if _, err := os.Stat(os.Getenv("CAPATH") + caCertsDir); os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(os.Getenv("CAPATH"), caCertsDir)); os.IsNotExist(err) {
 		return certificate, ErrCertLoadNotFound
 	}
 
 	certificate.CACertificate = c.Data.Certificate
 	certificate.caCertificate = c.Data.certificate
 
-	if keyString, loadErr = storage.LoadFile(caCertsDir + "/key.pem"); loadErr == nil {
+	if keyString, loadErr = storage.LoadFile(caCertsDir, "key.pem"); loadErr == nil {
 		privateKey, _ := key.LoadPrivateKey(keyString)
 		certificate.PrivateKey = string(keyString)
 		certificate.privateKey = *privateKey
 	}
 
-	if publicKeyString, loadErr = storage.LoadFile(caCertsDir + "/key.pub"); loadErr == nil {
+	if publicKeyString, loadErr = storage.LoadFile(caCertsDir, "key.pub"); loadErr == nil {
 		publicKey, _ := key.LoadPublicKey(publicKeyString)
 		certificate.PublicKey = string(publicKeyString)
 		certificate.publicKey = *publicKey
 	}
 
-	if csrString, loadErr = storage.LoadFile(caCertsDir + "/" + commonName + csrExtension); loadErr == nil {
+	if csrString, loadErr = storage.LoadFile(caCertsDir, commonName+csrExtension); loadErr == nil {
 		csr, _ := cert.LoadCSR(csrString)
 		certificate.CSR = string(csrString)
 		certificate.csr = *csr
 	}
 
-	if certString, loadErr = storage.LoadFile(caCertsDir + "/" + commonName + certExtension); loadErr == nil {
+	if certString, loadErr = storage.LoadFile(caCertsDir, commonName+certExtension); loadErr == nil {
 		cert, err := cert.LoadCert(certString)
 		if err != nil {
 			return certificate, err
@@ -401,7 +400,7 @@ func (c *CA) loadCertificate(commonName string) (certificate Certificate, err er
 func (c *CA) revokeCertificate(certificate *x509.Certificate) error {
 
 	var revokedCerts []pkix.RevokedCertificate
-	var caDir string = "/" + c.CommonName + "/ca"
+	var caDir string = filepath.Join(c.CommonName, "ca")
 	var crlString []byte
 
 	currentCRL := c.GoCRL()
@@ -433,8 +432,7 @@ func (c *CA) revokeCertificate(certificate *x509.Certificate) error {
 	}
 	c.Data.crl = crl
 
-	var crlFile string = caDir + "/" + c.CommonName + crlExtension
-	if crlString, err = storage.LoadFile(crlFile); err != nil {
+	if crlString, err = storage.LoadFile(caDir, c.CommonName+crlExtension); err != nil {
 		crlString = []byte{}
 	}
 

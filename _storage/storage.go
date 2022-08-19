@@ -130,7 +130,7 @@ type File struct {
 // CheckCertExists returns if a certificate exists or not
 func CheckCertExists(f File) bool {
 	caPath, _ := caPathInit()
-	if _, err := os.Stat(caPath + "/" + f.CA + "/certs/" + f.CommonName + "/" + f.CommonName + ".crt"); os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(caPath, f.CA, "certs", f.CommonName, f.CommonName+".crt")); os.IsNotExist(err) {
 		return false
 	}
 
@@ -138,9 +138,9 @@ func CheckCertExists(f File) bool {
 }
 
 // MakeFolder creates folder inside the CAPATH infrastructure.
-func MakeFolder(folderPath string) error {
+func MakeFolder(folderPath ...string) error {
 
-	errMakedirAll := os.MkdirAll(folderPath, 0755)
+	errMakedirAll := os.MkdirAll(filepath.Join(folderPath...), 0755)
 	if errMakedirAll != nil {
 		return errMakedirAll
 	}
@@ -190,7 +190,7 @@ func CAStorage(commonName string) bool {
 		return false
 	}
 
-	if _, err := os.Stat(caPath + "/" + commonName); os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(caPath, commonName)); os.IsNotExist(err) {
 		return false
 	}
 
@@ -238,10 +238,10 @@ func SaveFile(f File) error {
 	// Creation type
 	switch f.CreationType {
 	case CreationTypeCA:
-		fileName += "/" + f.CA + "/ca/"
+		fileName = filepath.Join(fileName, f.CA, "ca")
 
 	case CreationTypeCertificate:
-		fileName += "/" + f.CA + "/certs/" + f.CommonName + "/"
+		fileName = filepath.Join(fileName, f.CA, "certs", f.CommonName)
 		if _, err := os.Stat(fileName); os.IsNotExist(err) {
 
 			err := MakeFolder(fileName)
@@ -254,17 +254,17 @@ func SaveFile(f File) error {
 	// File Type
 	switch f.FileType {
 	case FileTypeKey:
-		savePEMKey(fileName+PEMFile, f.PrivateKeyData)
-		savePublicPEMKey(fileName+PublicPEMFile, f.PublicKeyData)
+		savePEMKey(filepath.Join(fileName, PEMFile), f.PrivateKeyData)
+		savePublicPEMKey(filepath.Join(fileName, PublicPEMFile), f.PublicKeyData)
 
 	case FileTypeCSR:
-		saveCSR(fileName+"/"+f.CommonName+".csr", f.CSRData)
+		saveCSR(filepath.Join(fileName, f.CommonName+".csr"), f.CSRData)
 
 	case FileTypeCertificate:
-		saveCert(fileName+"/"+f.CommonName+".crt", f.CertData)
+		saveCert(filepath.Join(fileName, f.CommonName+".crt"), f.CertData)
 
 	case FileTypeCRL:
-		saveCRL(fileName+"/"+f.CommonName+".crl", f.CRLData)
+		saveCRL(filepath.Join(fileName, f.CommonName+".crl"), f.CRLData)
 	}
 
 	return nil
@@ -272,13 +272,14 @@ func SaveFile(f File) error {
 }
 
 // LoadFile loads a file by file name from $CAPATH
-func LoadFile(fileName string) ([]byte, error) {
+func LoadFile(filePath ...string) ([]byte, error) {
+	var fileName = filepath.Join(filePath...)
 	caPath, err := CAPathIsReady()
 	if err != nil {
 		return nil, err
 	}
 
-	fileData, err := ioutil.ReadFile(caPath + "/" + fileName)
+	fileData, err := ioutil.ReadFile(filepath.Join(caPath, fileName))
 	if err != nil {
 		return []byte{}, err
 	}
@@ -287,7 +288,8 @@ func LoadFile(fileName string) ([]byte, error) {
 
 }
 
-func listDirs(path string) []string {
+func listDirs(paths ...string) []string {
+	var path = filepath.Join(paths...)
 	caPath, err := CAPathIsReady()
 	if err != nil {
 		return nil
@@ -295,7 +297,7 @@ func listDirs(path string) []string {
 
 	var dirs []string
 
-	files, err := filepath.Glob(caPath + "/" + path + "/*")
+	files, err := filepath.Glob(filepath.Join(caPath, path, "*"))
 	if err != nil {
 		return nil
 	}
@@ -303,7 +305,7 @@ func listDirs(path string) []string {
 	for _, f := range files {
 		info, _ := os.Stat(f)
 		if info.IsDir() {
-			dirSplited := strings.Split(f, "/")
+			dirSplited := strings.Split(f, string(os.PathSeparator))
 			dirs = append(dirs, dirSplited[len(dirSplited)-1])
 		}
 	}
@@ -313,7 +315,7 @@ func listDirs(path string) []string {
 
 // ListCertificates return a list of certificates folders
 func ListCertificates(CACommonName string) []string {
-	return listDirs(CACommonName + "/certs")
+	return listDirs(CACommonName, "certs")
 }
 
 // ListCAs return a list of certificates folders
