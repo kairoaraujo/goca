@@ -68,7 +68,7 @@ func TestFunctionalIntermediateCACreation(t *testing.T) {
 		Intermediate:       true,
 	}
 
-	IntermediateCA, err := New("go-itermediate.ca", intermediateCAIdentity)
+	IntermediateCA, err := New("go-intermediate.ca", intermediateCAIdentity)
 	if err != nil {
 		t.Log(err)
 		t.Errorf("Failing to create the CA")
@@ -82,7 +82,7 @@ func TestFunctionalIntermediateCACreation(t *testing.T) {
 		t.Errorf(IntermediateCA.Status())
 	}
 
-	fi, err := os.Stat(filepath.Join(CaTestFolder, "go-itermediate.ca", "ca", "key.pem"))
+	fi, err := os.Stat(filepath.Join(CaTestFolder, "go-intermediate.ca", "ca", "key.pem"))
 	if err != nil {
 		t.Errorf("key.pem does not exist for the CA")
 	}
@@ -122,7 +122,7 @@ func TestFunctionalRootCASignsIntermediateCA(t *testing.T) {
 	}
 
 	t.Log("Tested load Intermediate CA")
-	IntermediateCA, err := Load("go-itermediate.ca")
+	IntermediateCA, err := Load("go-intermediate.ca")
 
 	if err != nil {
 		t.Log(err)
@@ -145,6 +145,11 @@ func TestFunctionalRootCASignsIntermediateCA(t *testing.T) {
 		t.Errorf("Failed to sign Intermediate CSR")
 	}
 	t.Log("Tested Sign CSR with correct valid days (365)")
+
+	_, err = os.Stat(filepath.Join(CaTestFolder, "go-intermediate.ca", "ca", "go-intermediate.ca.crt"))
+	if err != nil {
+		t.Errorf("Intermediate CA certificate not in intermediate CA directory")
+	}
 
 	fmt.Println(RootCA.ListCertificates())
 }
@@ -206,7 +211,7 @@ func TestFunctionalRootCALoadCertificates(t *testing.T) {
 	if intranetCert.GetCACertificate() != "" {
 		t.Log("Failed to load intranet")
 	}
-	intermediateCert, _ := RootCA.LoadCertificate("go-itermediate.ca")
+	intermediateCert, _ := RootCA.LoadCertificate("go-intermediate.ca")
 
 	if RootCA.GetCertificate() != intermediateCert.GetCACertificate() {
 		t.Log(RootCA.GetCertificate())
@@ -216,15 +221,43 @@ func TestFunctionalRootCALoadCertificates(t *testing.T) {
 
 }
 
+func TestFunctionalIntermediateCAIssueNewCertificate(t *testing.T) {
+	id := Identity{
+		Organization:       "An Organization",
+		OrganizationalUnit: "An Organizational Unit",
+		Country:            "NL",
+		Locality:           "Noord-Brabant",
+		Province:           "Veldhoven",
+		Intermediate:       false,
+		DNSNames:           []string{"anorg.go-intermediate.ca"},
+	}
+
+	interCA, err := Load("go-intermediate.ca")
+	if err != nil {
+		t.Errorf("Failed to load intermediate CA")
+	}
+
+	idCert, err := interCA.IssueCertificate("anorg.go-intermediate.ca", id)
+	if err != nil {
+		t.Error("Failed to issue certificate anorg.go-intermediate.ca")
+	}
+
+	fmt.Println(interCA.ListCertificates())
+
+	if interCA.GetCertificate() != idCert.GetCACertificate() {
+		t.Error("CA certificate mismatch between intermediate CA and issued certificate.")
+	}
+}
+
 func TestFunctionalRevokeCertificate(t *testing.T) {
 	RootCA, _ := Load("go-root.ca")
-	intermediateCert, _ := RootCA.LoadCertificate("go-itermediate.ca")
+	intermediateCert, _ := RootCA.LoadCertificate("go-intermediate.ca")
 
 	if RootCA.Data.crl == nil {
 		t.Error("CRL is nil")
 	}
 
-	err := RootCA.RevokeCertificate("go-itermediate.ca")
+	err := RootCA.RevokeCertificate("go-intermediate.ca")
 	if err != nil {
 		t.Error("Failed to revoke certificate")
 	}
