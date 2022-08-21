@@ -3,6 +3,7 @@ package goca
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -42,7 +43,7 @@ func TestFunctionalRootCACreation(t *testing.T) {
 		t.Errorf(RootCompanyCA.Status())
 	}
 
-	fi, err := os.Stat(CaTestFolder + "/go-root.ca/ca/key.pem")
+	fi, err := os.Stat(filepath.Join(CaTestFolder, "go-root.ca", "ca", "key.pem"))
 	if err != nil {
 		t.Errorf("key.pem does not exist for the CA")
 	}
@@ -81,7 +82,7 @@ func TestFunctionalIntermediateCACreation(t *testing.T) {
 		t.Errorf(IntermediateCA.Status())
 	}
 
-	fi, err := os.Stat(CaTestFolder + "/go-itermediate.ca/ca/key.pem")
+	fi, err := os.Stat(filepath.Join(CaTestFolder, "go-itermediate.ca", "ca", "key.pem"))
 	if err != nil {
 		t.Errorf("key.pem does not exist for the CA")
 	}
@@ -179,7 +180,7 @@ func TestFunctionalRootCAIssueNewCertificate(t *testing.T) {
 		t.Error("The CA Certificate is not the same as the Certificate CA Certificate")
 	}
 
-	fi, err := os.Stat(CaTestFolder + "/go-root.ca/certs/intranet.go-root.ca/key.pem")
+	fi, err := os.Stat(filepath.Join(CaTestFolder, "go-root.ca", "certs", "intranet.go-root.ca", "key.pem"))
 	if err != nil {
 		t.Errorf("key.pem does not exist for the identity")
 	}
