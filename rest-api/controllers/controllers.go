@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -194,7 +195,7 @@ func UploadCertificateICA(c *gin.Context) {
 
 	certUploaded, _ := c.FormFile("file")
 	fileName := uuid.New().String()
-	fileNameFull := os.Getenv("CAPATH") + "/" + fileName
+	fileNameFull := filepath.Join(os.Getenv("CAPATH"), fileName)
 	if err := c.SaveUploadedFile(certUploaded, fileNameFull); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -271,7 +272,7 @@ func SignCSR(c *gin.Context) {
 	}
 
 	fileName := uuid.New().String()
-	fileNameFull := os.Getenv("CAPATH") + "/" + fileName
+	fileNameFull := filepath.Join(os.Getenv("CAPATH"), fileName)
 	if err := c.SaveUploadedFile(csrUploaded, fileNameFull); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
