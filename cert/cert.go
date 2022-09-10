@@ -22,13 +22,13 @@
 
 // Package cert provides RSA Key API management for crypto/x509 certificates.
 //
-//
 // This package makes easy to generate and certificates from files to be used
 // by GoLang applications.
 //
 // Generating Certificates (even by Signing), the files will be saved in the
 // $CAPATH by default.
-//For $CAPATH, please check out the GoCA documentation.
+// For $CAPATH, please check out the GoCA documentation.
+
 package cert
 
 import (
