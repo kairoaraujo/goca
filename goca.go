@@ -7,7 +7,7 @@
 // Certificates Signing Request (CSR) and revoke certificate generating
 // Certificates Request List (CRL).
 //
-// All files are stored in the ``$CAPATH``. The ``$CAPATH`` is an environment
+// All files are stored in the “$CAPATH“. The “$CAPATH“ is an environment
 // variable the defines were all files (keys, certificates, etc) will be stored.
 // It is importante to have this folder in a safety place.
 //
@@ -70,12 +70,12 @@ func List() []string {
 }
 
 // New creat new Certificate Authority
-func New(commonName string, identity Identity) (ca CA, err error) {
+func New(commonName, parentCommonName string, identity Identity) (ca CA, err error) {
 	ca = CA{
 		CommonName: commonName,
 	}
 
-	err = ca.create(commonName, identity)
+	err = ca.create(commonName, parentCommonName, identity)
 	if err != nil {
 		return ca, err
 	}
@@ -135,7 +135,7 @@ func (c *CA) GoCRL() *pkix.CertificateList {
 
 // IsIntermediate returns if the CA is Intermediate CA (true)
 func (c *CA) IsIntermediate() bool {
-	return c.Data.CSR != ""
+	return c.Data.IsIntermediate
 
 }
 

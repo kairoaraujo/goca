@@ -21,8 +21,9 @@ type ResponseList struct {
 }
 
 type Payload struct {
-	CommonName string        `json:"common_name" example:"root-ca" binding:"required"`
-	Identity   goca.Identity `json:"identity" binding:"required"`
+	CommonName       string        `json:"common_name" example:"root-ca" binding:"required"`
+	ParentCommonName string        `json:"parent_common_name" example:"root-ca"`
+	Identity         goca.Identity `json:"identity" binding:"required"`
 }
 
 type CABody struct {

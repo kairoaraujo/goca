@@ -31,7 +31,7 @@ func TestFunctionalRootCACreation(t *testing.T) {
 		DNSNames:           []string{"www.go-root.ca", "secure.go-root.ca"},
 	}
 
-	RootCompanyCA, err := New("go-root.ca", rootCAIdentity)
+	RootCompanyCA, err := New("go-root.ca", "", rootCAIdentity)
 	if err != nil {
 		t.Errorf("Failing to create the CA")
 	}
@@ -68,7 +68,7 @@ func TestFunctionalIntermediateCACreation(t *testing.T) {
 		Intermediate:       true,
 	}
 
-	IntermediateCA, err := New("go-intermediate.ca", intermediateCAIdentity)
+	IntermediateCA, err := New("go-intermediate.ca", "go-root.ca", intermediateCAIdentity)
 	if err != nil {
 		t.Log(err)
 		t.Errorf("Failing to create the CA")
@@ -76,10 +76,6 @@ func TestFunctionalIntermediateCACreation(t *testing.T) {
 
 	if IntermediateCA.IsIntermediate() != true {
 		t.Errorf("Intermediate is false instead true")
-	}
-
-	if IntermediateCA.Status() != "Intermediate Certificate Authority not ready, missing Certificate." {
-		t.Errorf(IntermediateCA.Status())
 	}
 
 	fi, err := os.Stat(filepath.Join(CaTestFolder, "go-intermediate.ca", "ca", "key.pem"))
@@ -99,59 +95,6 @@ func TestFunctionalListCAs(t *testing.T) {
 		t.Error("Empty list of CAs")
 	}
 	t.Log(List())
-}
-
-// RootCA signs the Intermediate CA
-func TestFunctionalRootCASignsIntermediateCA(t *testing.T) {
-
-	t.Log("Tested load Root CA")
-	RootCA, err := Load("go-root.ca")
-	if err != nil {
-		t.Log(err)
-		t.Errorf("Failed to load Root CA")
-	}
-
-	if RootCA.GetCRL() == "" {
-		t.Error("Empty CRL")
-	}
-
-	t.Log(RootCA.GoCertificate().DNSNames)
-
-	if RootCA.IsIntermediate() {
-		t.Errorf("Failed to load as Root CA")
-	}
-
-	t.Log("Tested load Intermediate CA")
-	IntermediateCA, err := Load("go-intermediate.ca")
-
-	if err != nil {
-		t.Log(err)
-		t.Errorf("Failed to load Intermediate CA")
-	}
-
-	if !IntermediateCA.IsIntermediate() {
-		t.Errorf("CA should be Intermediate")
-	}
-
-	IntermediateCACert, err := RootCA.SignCSR(*IntermediateCA.GoCSR(), 1000)
-	if err != nil {
-		t.Log("Tested the with 1000 days valid")
-		t.Log(IntermediateCACert.Certificate)
-	}
-
-	IntermediateCACert, err = RootCA.SignCSR(*IntermediateCA.GoCSR(), 365)
-	if err != nil {
-		t.Log(err)
-		t.Errorf("Failed to sign Intermediate CSR")
-	}
-	t.Log("Tested Sign CSR with correct valid days (365)")
-
-	_, err = os.Stat(filepath.Join(CaTestFolder, "go-intermediate.ca", "ca", "go-intermediate.ca.crt"))
-	if err != nil {
-		t.Errorf("Intermediate CA certificate not in intermediate CA directory")
-	}
-
-	fmt.Println(RootCA.ListCertificates())
 }
 
 func TestFunctionalRootCAIssueNewCertificate(t *testing.T) {

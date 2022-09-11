@@ -28,7 +28,6 @@
 // Generating Certificates (even by Signing), the files will be saved in the
 // $CAPATH by default.
 // For $CAPATH, please check out the GoCA documentation.
-
 package cert
 
 import (
@@ -40,9 +39,11 @@ import (
 	"encoding/pem"
 	"errors"
 	"math/big"
+	"path/filepath"
 	"time"
 
 	storage "github.com/kairoaraujo/goca/_storage"
+	"github.com/kairoaraujo/goca/key"
 )
 
 const (
@@ -52,10 +53,14 @@ const (
 	MaxValidCert int = 825
 	// DefaultValidCert is the default valid time: 397 days
 	DefaultValidCert int = 397
+	// Certificate file extension
+	certExtension string = ".crt"
 )
 
 // ErrCertExists means that the certificate requested already exists
 var ErrCertExists = errors.New("certificate already exists")
+
+var ErrParentCANotFound = errors.New("parent CA not found")
 
 func newSerialNumber() (serialNumber *big.Int) {
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
@@ -135,13 +140,44 @@ func LoadCRL(crlString []byte) (*pkix.CertificateList, error) {
 	return crl, nil
 }
 
-// CreateRootCert creates a Root CA Certificate (self signed)
-func CreateRootCert(CACommonName, commonName, country, province, locality, organization, organizationalUnit, emailAddresses string, valid int, dnsNames []string, priv *rsa.PrivateKey, pub *rsa.PublicKey, creationType storage.CreationType) (cert []byte, err error) {
+// LoadParentCACertificate loads parent CA's certificate and private key
+func LoadParentCACertificate(commonName string) (certificate *x509.Certificate, privateKey *rsa.PrivateKey, err error) {
+	caStorage := storage.CAStorage(commonName)
+	if !caStorage {
+		return nil, nil, ErrParentCANotFound
+	}
 
+	var caDir = filepath.Join(commonName, "ca")
+
+	if keyString, loadErr := storage.LoadFile(filepath.Join(caDir, "key.pem")); loadErr == nil {
+		privateKey, err = key.LoadPrivateKey(keyString)
+		if err != nil {
+			return nil, nil, err
+		}
+	} else {
+		return nil, nil, loadErr
+	}
+
+	if certString, loadErr := storage.LoadFile(filepath.Join(caDir, commonName+certExtension)); loadErr == nil {
+		certificate, err = LoadCert(certString)
+		if err != nil {
+			return nil, nil, err
+		}
+	} else {
+		return nil, nil, loadErr
+	}
+	return certificate, privateKey, nil
+}
+
+// CreateCACert creates a CA Certificate
+//
+// Root certificates are self-signed, intermediate certificates are signed by
+// parent CA
+func CreateCACert(CACommonName, commonName, parentCommonName, country, province, locality, organization, organizationalUnit, emailAddresses string, valid int, dnsNames []string, priv *rsa.PrivateKey, pub *rsa.PublicKey, creationType storage.CreationType) (cert []byte, err error) {
 	if valid == 0 {
 		valid = DefaultValidCert
 	}
-	rootCA := &x509.Certificate{
+	caCert := &x509.Certificate{
 		SerialNumber: newSerialNumber(),
 		Subject: pkix.Name{
 			Organization:       []string{organization},
@@ -161,9 +197,18 @@ func CreateRootCert(CACommonName, commonName, country, province, locality, organ
 	}
 
 	dnsNames = append(dnsNames, commonName)
-	rootCA.DNSNames = dnsNames
+	caCert.DNSNames = dnsNames
 
-	cert, err = x509.CreateCertificate(rand.Reader, rootCA, rootCA, pub, priv)
+	var parentCertificate = caCert
+
+	if parentCommonName != "" {
+		parentCertificate, priv, err = LoadParentCACertificate(parentCommonName)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	cert, err = x509.CreateCertificate(rand.Reader, caCert, parentCertificate, pub, priv)
 	if err != nil {
 		return nil, err
 	}

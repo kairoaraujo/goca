@@ -24,7 +24,7 @@ func Example_minimal() {
 	}
 
 	// Create the New Root CA or loads existent from disk ($CAPATH)
-	RootCA, err := goca.New("mycompany.com", rootCAIdentity)
+	RootCA, err := goca.New("mycompany.com", "", rootCAIdentity)
 	if err != nil {
 		// Loads in case it exists
 		fmt.Println("Loading CA")
