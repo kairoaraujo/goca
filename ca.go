@@ -70,6 +70,8 @@ var ErrCertLoadNotFound = errors.New("the requested Certificate does not exist")
 // ErrCertRevoked means that certificate was not found in $CAPATH to be loaded.
 var ErrCertRevoked = errors.New("the requested Certificate is already revoked")
 
+var ErrParentCommonNameNotSpecified = errors.New("parent common name is empty when creating an intermediate CA certificate")
+
 func (c *CA) create(commonName, parentCommonName string, id Identity) error {
 
 	caData := CAData{}
@@ -128,6 +130,9 @@ func (c *CA) create(commonName, parentCommonName string, id Identity) error {
 		certBytes, err = cert.CreateCACert(commonName, commonName, "", id.Country, id.Province, id.Locality, id.Organization, id.OrganizationalUnit, id.EmailAddresses, id.Valid, id.DNSNames, privKey, pubKey, storage.CreationTypeCA)
 		caData.IsIntermediate = false
 	} else {
+		if parentCommonName == "" {
+			return ErrParentCommonNameNotSpecified
+		}
 		certBytes, err = cert.CreateCACert(commonName, commonName, parentCommonName, id.Country, id.Province, id.Locality, id.Organization, id.OrganizationalUnit, id.EmailAddresses, id.Valid, id.DNSNames, privKey, pubKey, storage.CreationTypeCA)
 		caData.IsIntermediate = true
 	}

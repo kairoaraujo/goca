@@ -236,7 +236,6 @@ func CreateCACert(CACommonName, commonName, parentCommonName, country, province,
 func LoadCert(certString []byte) (*x509.Certificate, error) {
 	block, _ := pem.Decode([]byte(string(certString)))
 	cert, _ := x509.ParseCertificate(block.Bytes)
-
 	return cert, nil
 }
 
