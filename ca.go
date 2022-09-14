@@ -7,6 +7,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"time"
@@ -377,7 +378,7 @@ func (c *CA) loadCertificate(commonName string) (certificate Certificate, err er
 		loadErr         error
 	)
 
-	if _, err := os.Stat(filepath.Join(os.Getenv("CAPATH"), caCertsDir)); os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(os.Getenv("CAPATH"), caCertsDir)); errors.Is(err, fs.ErrNotExist) {
 		return certificate, ErrCertLoadNotFound
 	}
 

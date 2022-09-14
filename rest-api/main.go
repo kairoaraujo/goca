@@ -1,6 +1,9 @@
 package main
 
 import (
+	"flag"
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -20,6 +23,11 @@ import (
 // @license.name MIT
 // @license.url https://opensource.org/licenses/MIT
 func main() {
+
+	var port int
+
+	flag.IntVar(&port, "p", 80, "Port to listen, default is 80")
+	flag.Parse()
 
 	router := gin.Default()
 	// Set a lower memory limit for multipart forms (default is 32 MiB)
@@ -42,7 +50,7 @@ func main() {
 	v1.GET("/ca/:cn/certificates/:cert_cn", controllers.GetCertificatesCommonName)
 
 	// Run the server
-	err := router.Run(":80")
+	err := router.Run(fmt.Sprintf(":%d", port))
 	if err != nil {
 		panic(err)
 	}
