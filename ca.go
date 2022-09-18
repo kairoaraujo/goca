@@ -127,14 +127,53 @@ func (c *CA) create(commonName, parentCommonName string, id Identity) error {
 	caData.PublicKey = string(publicKeyString)
 
 	if !id.Intermediate {
-		certBytes, err = cert.CreateCACert(commonName, commonName, "", id.Country, id.Province, id.Locality, id.Organization, id.OrganizationalUnit, id.EmailAddresses, id.Valid, id.DNSNames, privKey, pubKey, storage.CreationTypeCA)
 		caData.IsIntermediate = false
+		certBytes, err = cert.CreateRootCert(
+			commonName,
+			commonName,
+			id.Country,
+			id.Province,
+			id.Locality,
+			id.Organization,
+			id.OrganizationalUnit,
+			id.EmailAddresses,
+			id.Valid,
+			id.DNSNames,
+			privKey,
+			pubKey,
+			storage.CreationTypeCA,
+		)
 	} else {
 		if parentCommonName == "" {
 			return ErrParentCommonNameNotSpecified
 		}
-		certBytes, err = cert.CreateCACert(commonName, commonName, parentCommonName, id.Country, id.Province, id.Locality, id.Organization, id.OrganizationalUnit, id.EmailAddresses, id.Valid, id.DNSNames, privKey, pubKey, storage.CreationTypeCA)
+		var (
+			parentCertificate *x509.Certificate
+			parentPrivateKey  *rsa.PrivateKey
+		)
 		caData.IsIntermediate = true
+		parentCertificate, parentPrivateKey, err = cert.LoadParentCACertificate(parentCommonName)
+		if err != nil {
+			return nil
+		}
+
+		certBytes, err = cert.CreateCACert(
+			commonName,
+			commonName,
+			id.Country,
+			id.Province,
+			id.Locality,
+			id.Organization,
+			id.OrganizationalUnit,
+			id.EmailAddresses,
+			id.Valid,
+			id.DNSNames,
+			privKey,
+			parentPrivateKey,
+			parentCertificate,
+			pubKey,
+			storage.CreationTypeCA,
+		)
 	}
 	if err != nil {
 		return err

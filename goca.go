@@ -70,7 +70,13 @@ func List() []string {
 }
 
 // New creat new Certificate Authority
-func New(commonName, parentCommonName string, identity Identity) (ca CA, err error) {
+func New(commonName string, identity Identity) (ca CA, err error) {
+	ca, err = NewCA(commonName, "", identity)
+	return ca, err
+}
+
+// New create a new Certificate Authority
+func NewCA(commonName, parentCommonName string, identity Identity) (ca CA, err error) {
 	ca = CA{
 		CommonName: commonName,
 	}

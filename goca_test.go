@@ -31,7 +31,7 @@ func TestFunctionalRootCACreation(t *testing.T) {
 		DNSNames:           []string{"www.go-root.ca", "secure.go-root.ca"},
 	}
 
-	RootCompanyCA, err := New("go-root.ca", "", rootCAIdentity)
+	RootCompanyCA, err := New("go-root.ca", rootCAIdentity)
 	if err != nil {
 		t.Errorf("Failing to create the CA")
 	}
@@ -68,7 +68,7 @@ func TestFunctionalIntermediateCACreation(t *testing.T) {
 		Intermediate:       true,
 	}
 
-	IntermediateCA, err := New("go-intermediate.ca", "go-root.ca", intermediateCAIdentity)
+	IntermediateCA, err := NewCA("go-intermediate.ca", "go-root.ca", intermediateCAIdentity)
 	if err != nil {
 		t.Log(err)
 		t.Errorf("Failing to create the CA")

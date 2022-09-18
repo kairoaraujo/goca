@@ -115,7 +115,11 @@ func GetCA(c *gin.Context) {
 // @Router /api/v1/ca [post]
 func AddCA(c *gin.Context) {
 
-	var json models.Payload
+	var (
+		json models.Payload
+		ca   goca.CA
+		err  error
+	)
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -123,7 +127,11 @@ func AddCA(c *gin.Context) {
 
 	commonName, parentCommonName, identity := payloadInit(json)
 
-	ca, err := goca.New(commonName, parentCommonName, identity)
+	if parentCommonName == "" {
+		ca, err = goca.New(commonName, identity)
+	} else {
+		ca, err = goca.NewCA(commonName, parentCommonName, identity)
+	}
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

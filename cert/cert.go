@@ -141,6 +141,9 @@ func LoadCRL(crlString []byte) (*pkix.CertificateList, error) {
 }
 
 // LoadParentCACertificate loads parent CA's certificate and private key
+//
+// TODO maybe make this more generic, something like LoadCACertificate that
+// returns the certificate and private/public key
 func LoadParentCACertificate(commonName string) (certificate *x509.Certificate, privateKey *rsa.PrivateKey, err error) {
 	caStorage := storage.CAStorage(commonName)
 	if !caStorage {
@@ -169,46 +172,97 @@ func LoadParentCACertificate(commonName string) (certificate *x509.Certificate, 
 	return certificate, privateKey, nil
 }
 
+// CreateRootCert creates a Root CA Certificate (self-signed)
+func CreateRootCert(
+	CACommonName,
+	commonName,
+	country,
+	province,
+	locality,
+	organization,
+	organizationalUnit,
+	emailAddresses string,
+	valid int,
+	dnsNames []string,
+	privateKey *rsa.PrivateKey,
+	publicKey *rsa.PublicKey,
+	creationType storage.CreationType,
+) (cert []byte, err error) {
+	cert, err = CreateCACert(
+		CACommonName,
+		commonName,
+		country,
+		province,
+		locality,
+		organization,
+		organizationalUnit,
+		emailAddresses,
+		valid,
+		dnsNames,
+		privateKey,
+		nil, // parentPrivateKey
+		nil, // parentCertificate
+		publicKey,
+		creationType)
+	return cert, err
+}
+
 // CreateCACert creates a CA Certificate
 //
-// Root certificates are self-signed, intermediate certificates are signed by
-// parent CA
-func CreateCACert(CACommonName, commonName, parentCommonName, country, province, locality, organization, organizationalUnit, emailAddresses string, valid int, dnsNames []string, priv *rsa.PrivateKey, pub *rsa.PublicKey, creationType storage.CreationType) (cert []byte, err error) {
-	if valid == 0 {
-		valid = DefaultValidCert
+// Root certificates are self-signed. When creating a root certificate, leave
+// parentPrivateKey and parentCertificate parameters as nil. When creating an
+// intermediate CA certificates, provide parentPrivateKey and parentCertificate
+func CreateCACert(
+	CACommonName,
+	commonName,
+	country,
+	province,
+	locality,
+	organization,
+	organizationalUnit,
+	emailAddresses string,
+	validDays int,
+	dnsNames []string,
+	privateKey,
+	parentPrivateKey *rsa.PrivateKey,
+	parentCertificate *x509.Certificate,
+	publicKey *rsa.PublicKey,
+	creationType storage.CreationType,
+) (cert []byte, err error) {
+	if validDays == 0 {
+		validDays = DefaultValidCert
 	}
 	caCert := &x509.Certificate{
 		SerialNumber: newSerialNumber(),
 		Subject: pkix.Name{
+			CommonName:         commonName,
 			Organization:       []string{organization},
 			OrganizationalUnit: []string{organizationalUnit},
 			Country:            []string{country},
 			Province:           []string{province},
 			Locality:           []string{locality},
-			//TODO: StreetAddress: []string{"ADDRESS"},
-			//TODO: PostalCode:    []string{"POSTAL_CODE"},
+			// TODO: StreetAddress: []string{"ADDRESS"},
+			// TODO: PostalCode:    []string{"POSTAL_CODE"},
 		},
 		NotBefore:             time.Now(),
-		NotAfter:              time.Now().AddDate(0, 0, valid),
+		NotAfter:              time.Now().AddDate(0, 0, validDays),
 		IsCA:                  true,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 		BasicConstraintsValid: true,
 	}
-
 	dnsNames = append(dnsNames, commonName)
 	caCert.DNSNames = dnsNames
 
-	var parentCertificate = caCert
-
-	if parentCommonName != "" {
-		parentCertificate, priv, err = LoadParentCACertificate(parentCommonName)
-		if err != nil {
-			return nil, err
-		}
+	signingPrivateKey := privateKey
+	if parentPrivateKey != nil {
+		signingPrivateKey = parentPrivateKey
 	}
-
-	cert, err = x509.CreateCertificate(rand.Reader, caCert, parentCertificate, pub, priv)
+	signingCertificate := caCert
+	if parentCertificate != nil {
+		signingCertificate = parentCertificate
+	}
+	cert, err = x509.CreateCertificate(rand.Reader, caCert, signingCertificate, publicKey, signingPrivateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -220,11 +274,25 @@ func CreateCACert(CACommonName, commonName, parentCommonName, country, province,
 		CertData:     cert,
 		CreationType: creationType,
 	}
-
 	err = storage.SaveFile(fileData)
-
 	if err != nil {
 		return nil, err
+	}
+
+	// When creating intermediate CA certificates, store the certificates to its
+	// parent CA's cert dir
+	if parentCertificate != nil {
+		fileData := storage.File{
+			CA:           parentCertificate.Subject.CommonName,
+			CommonName:   commonName,
+			FileType:     storage.FileTypeCertificate,
+			CreationType: storage.CreationTypeCertificate,
+			CertData:     cert,
+		}
+		err = storage.SaveFile(fileData)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return cert, nil
