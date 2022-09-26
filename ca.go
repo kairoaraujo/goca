@@ -41,16 +41,17 @@ type Identity struct {
 // A CAData represents all the Certificate Authority Data as
 // RSA Keys, CRS, CRL, Certificates etc
 type CAData struct {
-	CRL         string `json:"crl" example:"-----BEGIN X509 CRL-----...-----END X509 CRL-----\n"`                       // Revocation List string
-	Certificate string `json:"certificate" example:"-----BEGIN CERTIFICATE-----...-----END CERTIFICATE-----\n"`         // Certificate string
-	CSR         string `json:"csr" example:"-----BEGIN CERTIFICATE REQUEST-----...-----END CERTIFICATE REQUEST-----\n"` // Certificate Signing Request string
-	PrivateKey  string `json:"private_key" example:"-----BEGIN PRIVATE KEY-----...-----END PRIVATE KEY-----\n"`         // Private Key string
-	PublicKey   string `json:"public_key" example:"-----BEGIN PUBLIC KEY-----...-----END PUBLIC KEY-----\n"`            // Public Key string
-	privateKey  rsa.PrivateKey
-	certificate *x509.Certificate
-	publicKey   rsa.PublicKey
-	csr         *x509.CertificateRequest
-	crl         *pkix.CertificateList
+	CRL            string `json:"crl" example:"-----BEGIN X509 CRL-----...-----END X509 CRL-----\n"`                       // Revocation List string
+	Certificate    string `json:"certificate" example:"-----BEGIN CERTIFICATE-----...-----END CERTIFICATE-----\n"`         // Certificate string
+	CSR            string `json:"csr" example:"-----BEGIN CERTIFICATE REQUEST-----...-----END CERTIFICATE REQUEST-----\n"` // Certificate Signing Request string
+	PrivateKey     string `json:"private_key" example:"-----BEGIN PRIVATE KEY-----...-----END PRIVATE KEY-----\n"`         // Private Key string
+	PublicKey      string `json:"public_key" example:"-----BEGIN PUBLIC KEY-----...-----END PUBLIC KEY-----\n"`            // Public Key string
+	privateKey     rsa.PrivateKey
+	certificate    *x509.Certificate
+	publicKey      rsa.PublicKey
+	csr            *x509.CertificateRequest
+	crl            *pkix.CertificateList
+	IsIntermediate bool
 }
 
 // ErrCAMissingInfo means that all information goca.Information{} is required
@@ -69,7 +70,9 @@ var ErrCertLoadNotFound = errors.New("the requested Certificate does not exist")
 // ErrCertRevoked means that certificate was not found in $CAPATH to be loaded.
 var ErrCertRevoked = errors.New("the requested Certificate is already revoked")
 
-func (c *CA) create(commonName string, id Identity) error {
+var ErrParentCommonNameNotSpecified = errors.New("parent common name is empty when creating an intermediate CA certificate")
+
+func (c *CA) create(commonName, parentCommonName string, id Identity) error {
 
 	caData := CAData{}
 
@@ -84,9 +87,10 @@ func (c *CA) create(commonName string, id Identity) error {
 		caCertsDir      string = filepath.Join(commonName, "certs")
 		keyString       []byte
 		publicKeyString []byte
-		csrString       []byte
+		certBytes       []byte
 		certString      []byte
 		crlString       []byte
+		err             error
 	)
 
 	if id.Organization == "" || id.OrganizationalUnit == "" || id.Country == "" || id.Locality == "" || id.Province == "" {
@@ -123,51 +127,82 @@ func (c *CA) create(commonName string, id Identity) error {
 	caData.PublicKey = string(publicKeyString)
 
 	if !id.Intermediate {
-		certBytes, err := cert.CreateRootCert(commonName, commonName, id.Country, id.Province, id.Locality, id.Organization, id.OrganizationalUnit, id.EmailAddresses, id.Valid, id.DNSNames, privKey, pubKey, storage.CreationTypeCA)
-		if err != nil {
-			return err
-		}
-		certificate, _ := x509.ParseCertificate(certBytes)
-
-		if certString, err = storage.LoadFile(caDir, commonName+certExtension); err != nil {
-			certString = []byte{}
-		}
-
-		caData.certificate = certificate
-		caData.Certificate = string(certString)
-
-		crlBytes, err := cert.RevokeCertificate(c.CommonName, []pkix.RevokedCertificate{}, certificate, privKey)
-		if err != nil {
-			crl, err := x509.ParseCRL(crlBytes)
-			if err != nil {
-				caData.crl = crl
-			}
-		}
-
-		if crlString, err = storage.LoadFile(caDir, commonName+crlExtension); err != nil {
-			crlString = []byte{}
-		}
-
-		c.Data.CRL = string(crlString)
-
+		caData.IsIntermediate = false
+		certBytes, err = cert.CreateRootCert(
+			commonName,
+			commonName,
+			id.Country,
+			id.Province,
+			id.Locality,
+			id.Organization,
+			id.OrganizationalUnit,
+			id.EmailAddresses,
+			id.Valid,
+			id.DNSNames,
+			privKey,
+			pubKey,
+			storage.CreationTypeCA,
+		)
 	} else {
-		csrBytes, err := cert.CreateCSR(commonName, commonName, id.Country, id.Province, id.Locality, id.Organization, id.OrganizationalUnit, id.EmailAddresses, id.DNSNames, privKey, storage.CreationTypeCA)
-		if err != nil {
-			return err
+		if parentCommonName == "" {
+			return ErrParentCommonNameNotSpecified
 		}
-		csr, _ := x509.ParseCertificateRequest(csrBytes)
-		if csrString, err = storage.LoadFile(caDir, commonName+csrExtension); err != nil {
-			csrString = []byte{}
+		var (
+			parentCertificate *x509.Certificate
+			parentPrivateKey  *rsa.PrivateKey
+		)
+		caData.IsIntermediate = true
+		parentCertificate, parentPrivateKey, err = cert.LoadParentCACertificate(parentCommonName)
+		if err != nil {
+			return nil
 		}
 
-		caData.csr = csr
-		caData.CSR = string(csrString)
+		certBytes, err = cert.CreateCACert(
+			commonName,
+			commonName,
+			id.Country,
+			id.Province,
+			id.Locality,
+			id.Organization,
+			id.OrganizationalUnit,
+			id.EmailAddresses,
+			id.Valid,
+			id.DNSNames,
+			privKey,
+			parentPrivateKey,
+			parentCertificate,
+			pubKey,
+			storage.CreationTypeCA,
+		)
+	}
+	if err != nil {
+		return err
+	}
+	certificate, _ := x509.ParseCertificate(certBytes)
+
+	if certString, err = storage.LoadFile(caDir, commonName+certExtension); err != nil {
+		certString = []byte{}
 	}
 
+	caData.certificate = certificate
+	caData.Certificate = string(certString)
+
+	crlBytes, err := cert.RevokeCertificate(c.CommonName, []pkix.RevokedCertificate{}, certificate, privKey)
+	if err != nil {
+		crl, err := x509.ParseCRL(crlBytes)
+		if err != nil {
+			caData.crl = crl
+		}
+	}
+
+	if crlString, err = storage.LoadFile(caDir, commonName+crlExtension); err != nil {
+		crlString = []byte{}
+	}
+
+	c.Data.CRL = string(crlString)
 	c.Data = caData
 
 	return nil
-
 }
 
 func (c *CA) loadCA(commonName string) error {

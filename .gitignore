@@ -1,5 +1,5 @@
-coverage.out
-./DoNotUseThisCAPATHTestOnly
-DoNotUseThisCAPATHTestOnly
+.vscode/
 bin/
 count.out
+coverage.out
+DoNotUseThisCAPATHTestOnly/

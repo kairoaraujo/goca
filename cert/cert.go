@@ -28,7 +28,6 @@
 // Generating Certificates (even by Signing), the files will be saved in the
 // $CAPATH by default.
 // For $CAPATH, please check out the GoCA documentation.
-
 package cert
 
 import (
@@ -40,9 +39,11 @@ import (
 	"encoding/pem"
 	"errors"
 	"math/big"
+	"path/filepath"
 	"time"
 
 	storage "github.com/kairoaraujo/goca/_storage"
+	"github.com/kairoaraujo/goca/key"
 )
 
 const (
@@ -52,10 +53,14 @@ const (
 	MaxValidCert int = 825
 	// DefaultValidCert is the default valid time: 397 days
 	DefaultValidCert int = 397
+	// Certificate file extension
+	certExtension string = ".crt"
 )
 
 // ErrCertExists means that the certificate requested already exists
 var ErrCertExists = errors.New("certificate already exists")
+
+var ErrParentCANotFound = errors.New("parent CA not found")
 
 func newSerialNumber() (serialNumber *big.Int) {
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
@@ -135,35 +140,129 @@ func LoadCRL(crlString []byte) (*pkix.CertificateList, error) {
 	return crl, nil
 }
 
-// CreateRootCert creates a Root CA Certificate (self signed)
-func CreateRootCert(CACommonName, commonName, country, province, locality, organization, organizationalUnit, emailAddresses string, valid int, dnsNames []string, priv *rsa.PrivateKey, pub *rsa.PublicKey, creationType storage.CreationType) (cert []byte, err error) {
-
-	if valid == 0 {
-		valid = DefaultValidCert
+// LoadParentCACertificate loads parent CA's certificate and private key
+//
+// TODO maybe make this more generic, something like LoadCACertificate that
+// returns the certificate and private/public key
+func LoadParentCACertificate(commonName string) (certificate *x509.Certificate, privateKey *rsa.PrivateKey, err error) {
+	caStorage := storage.CAStorage(commonName)
+	if !caStorage {
+		return nil, nil, ErrParentCANotFound
 	}
-	rootCA := &x509.Certificate{
+
+	var caDir = filepath.Join(commonName, "ca")
+
+	if keyString, loadErr := storage.LoadFile(filepath.Join(caDir, "key.pem")); loadErr == nil {
+		privateKey, err = key.LoadPrivateKey(keyString)
+		if err != nil {
+			return nil, nil, err
+		}
+	} else {
+		return nil, nil, loadErr
+	}
+
+	if certString, loadErr := storage.LoadFile(filepath.Join(caDir, commonName+certExtension)); loadErr == nil {
+		certificate, err = LoadCert(certString)
+		if err != nil {
+			return nil, nil, err
+		}
+	} else {
+		return nil, nil, loadErr
+	}
+	return certificate, privateKey, nil
+}
+
+// CreateRootCert creates a Root CA Certificate (self-signed)
+func CreateRootCert(
+	CACommonName,
+	commonName,
+	country,
+	province,
+	locality,
+	organization,
+	organizationalUnit,
+	emailAddresses string,
+	valid int,
+	dnsNames []string,
+	privateKey *rsa.PrivateKey,
+	publicKey *rsa.PublicKey,
+	creationType storage.CreationType,
+) (cert []byte, err error) {
+	cert, err = CreateCACert(
+		CACommonName,
+		commonName,
+		country,
+		province,
+		locality,
+		organization,
+		organizationalUnit,
+		emailAddresses,
+		valid,
+		dnsNames,
+		privateKey,
+		nil, // parentPrivateKey
+		nil, // parentCertificate
+		publicKey,
+		creationType)
+	return cert, err
+}
+
+// CreateCACert creates a CA Certificate
+//
+// Root certificates are self-signed. When creating a root certificate, leave
+// parentPrivateKey and parentCertificate parameters as nil. When creating an
+// intermediate CA certificates, provide parentPrivateKey and parentCertificate
+func CreateCACert(
+	CACommonName,
+	commonName,
+	country,
+	province,
+	locality,
+	organization,
+	organizationalUnit,
+	emailAddresses string,
+	validDays int,
+	dnsNames []string,
+	privateKey,
+	parentPrivateKey *rsa.PrivateKey,
+	parentCertificate *x509.Certificate,
+	publicKey *rsa.PublicKey,
+	creationType storage.CreationType,
+) (cert []byte, err error) {
+	if validDays == 0 {
+		validDays = DefaultValidCert
+	}
+	caCert := &x509.Certificate{
 		SerialNumber: newSerialNumber(),
 		Subject: pkix.Name{
+			CommonName:         commonName,
 			Organization:       []string{organization},
 			OrganizationalUnit: []string{organizationalUnit},
 			Country:            []string{country},
 			Province:           []string{province},
 			Locality:           []string{locality},
-			//TODO: StreetAddress: []string{"ADDRESS"},
-			//TODO: PostalCode:    []string{"POSTAL_CODE"},
+			// TODO: StreetAddress: []string{"ADDRESS"},
+			// TODO: PostalCode:    []string{"POSTAL_CODE"},
 		},
 		NotBefore:             time.Now(),
-		NotAfter:              time.Now().AddDate(0, 0, valid),
+		NotAfter:              time.Now().AddDate(0, 0, validDays),
 		IsCA:                  true,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 		BasicConstraintsValid: true,
 	}
-
 	dnsNames = append(dnsNames, commonName)
-	rootCA.DNSNames = dnsNames
+	caCert.DNSNames = dnsNames
 
-	cert, err = x509.CreateCertificate(rand.Reader, rootCA, rootCA, pub, priv)
+	signingPrivateKey := privateKey
+	if parentPrivateKey != nil {
+		signingPrivateKey = parentPrivateKey
+	}
+	signingCertificate := caCert
+	if parentCertificate != nil {
+		signingCertificate = parentCertificate
+	}
+	cert, err = x509.CreateCertificate(rand.Reader, caCert, signingCertificate, publicKey, signingPrivateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -175,11 +274,25 @@ func CreateRootCert(CACommonName, commonName, country, province, locality, organ
 		CertData:     cert,
 		CreationType: creationType,
 	}
-
 	err = storage.SaveFile(fileData)
-
 	if err != nil {
 		return nil, err
+	}
+
+	// When creating intermediate CA certificates, store the certificates to its
+	// parent CA's cert dir
+	if parentCertificate != nil {
+		fileData := storage.File{
+			CA:           parentCertificate.Subject.CommonName,
+			CommonName:   commonName,
+			FileType:     storage.FileTypeCertificate,
+			CreationType: storage.CreationTypeCertificate,
+			CertData:     cert,
+		}
+		err = storage.SaveFile(fileData)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return cert, nil
@@ -191,7 +304,6 @@ func CreateRootCert(CACommonName, commonName, country, province, locality, organ
 func LoadCert(certString []byte) (*x509.Certificate, error) {
 	block, _ := pem.Decode([]byte(string(certString)))
 	cert, _ := x509.ParseCertificate(block.Bytes)
-
 	return cert, nil
 }
 

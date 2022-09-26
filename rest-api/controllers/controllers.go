@@ -69,9 +69,10 @@ func getCertificateData(certificate goca.Certificate) (body models.CertificateBo
 
 }
 
-func payloadInit(json models.Payload) (commonName string, identity goca.Identity) {
+func payloadInit(json models.Payload) (commonName, parentCommonName string, identity goca.Identity) {
 
 	commonName = json.CommonName
+	parentCommonName = json.ParentCommonName
 	identity = goca.Identity{
 		Organization:       json.Identity.Organization,
 		OrganizationalUnit: json.Identity.OrganizationalUnit,
@@ -84,7 +85,7 @@ func payloadInit(json models.Payload) (commonName string, identity goca.Identity
 		Valid:              json.Identity.Valid,
 	}
 
-	return commonName, identity
+	return commonName, parentCommonName, identity
 }
 
 // GetCA is the handler of Certificate Authorities endpoint
@@ -114,15 +115,23 @@ func GetCA(c *gin.Context) {
 // @Router /api/v1/ca [post]
 func AddCA(c *gin.Context) {
 
-	var json models.Payload
+	var (
+		json models.Payload
+		ca   goca.CA
+		err  error
+	)
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	commonName, identity := payloadInit(json)
+	commonName, parentCommonName, identity := payloadInit(json)
 
-	ca, err := goca.New(commonName, identity)
+	if parentCommonName == "" {
+		ca, err = goca.New(commonName, identity)
+	} else {
+		ca, err = goca.NewCA(commonName, parentCommonName, identity)
+	}
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -375,7 +384,7 @@ func IssueCertificates(c *gin.Context) {
 		return
 	}
 
-	commonName, identity := payloadInit(json)
+	commonName, _, identity := payloadInit(json)
 
 	certificate, err := ca.IssueCertificate(commonName, identity)
 	if err != nil {
