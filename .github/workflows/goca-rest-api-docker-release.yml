@@ -1,6 +1,7 @@
 name: GoCA REST API Docker test
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - '*'
@@ -38,7 +39,9 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: kairoaraujo/goca:latest
+        tags: |
+          kairoaraujo/goca:latest
+          Kairoaraujo/goca:${{ github.ref_name }}
 
     - name: Update repo description
       uses: peter-evans/dockerhub-description@v2
