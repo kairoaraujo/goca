@@ -16,6 +16,8 @@ definitions:
         example: |
           -----BEGIN CERTIFICATE REQUEST-----...-----END CERTIFICATE REQUEST-----
         type: string
+      isIntermediate:
+        type: boolean
       private_key:
         description: Private Key string
         example: |
@@ -179,6 +181,9 @@ definitions:
         type: string
       identity:
         $ref: '#/definitions/goca.Identity'
+      parent_common_name:
+        example: root-ca
+        type: string
     required:
     - common_name
     - identity
