@@ -19,7 +19,6 @@ package goca
 import (
 	"crypto/rsa"
 	"crypto/x509"
-	"crypto/x509/pkix"
 
 	storage "github.com/kairoaraujo/goca/_storage"
 )
@@ -134,8 +133,8 @@ func (c *CA) GetCRL() string {
 	return c.Data.CRL
 }
 
-// GoCRL returns Certificate Revocation List as Go bytes *pkix.CertificateList
-func (c *CA) GoCRL() *pkix.CertificateList {
+// GoCRL returns Certificate Revocation List as Go bytes *x509.RevocationList
+func (c *CA) GoCRL() *x509.RevocationList {
 	return c.Data.crl
 }
 

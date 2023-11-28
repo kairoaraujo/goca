@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"crypto/x509/pkix"
+	"crypto/x509"
 	"fmt"
 	"net/http"
 	"os"
@@ -42,7 +42,7 @@ func getCAData(ca goca.CA) (body models.CABody) {
 		body.SerialNumber = certificate.SerialNumber.String()
 		if crl != nil {
 			var revokedCertificates []string
-			for _, serialNumber := range crl.TBSCertList.RevokedCertificates {
+			for _, serialNumber := range crl.RevokedCertificateEntries {
 				revokedCertificates = append(revokedCertificates, serialNumber.SerialNumber.String())
 			}
 			body.CertificateRevocationList = revokedCertificates
@@ -240,7 +240,7 @@ func UploadCertificateICA(c *gin.Context) {
 
 	// Generate the initial CRL
 	privKey := ca.GoPrivateKey()
-	_, err = cert.RevokeCertificate(ca.CommonName, []pkix.RevokedCertificate{}, ca.GoCertificate(), &privKey)
+	_, err = cert.RevokeCertificate(ca.CommonName, []x509.RevocationListEntry{}, ca.GoCertificate(), &privKey)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
