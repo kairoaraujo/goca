@@ -16,9 +16,6 @@ jobs:
         go-version: 1.21
       id: go
 
-    - name: Set up Docker
-      uses: docker-practice/actions-setup-docker@v1
-
     - name: Check out code into the Go module directory
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
 
