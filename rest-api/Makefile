@@ -4,6 +4,7 @@ check_swag:
 	which swag || GO111MODULE=off go get -u github.com/swaggo/swag/cmd/swag
 
 doc: check_swag
+	go install github.com/swaggo/swag/cmd/swag@latest
 	swag init --output ../docs/ -parseDependency=true
 
 test-doc:
