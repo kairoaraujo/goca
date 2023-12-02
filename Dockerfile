@@ -1,4 +1,4 @@
-FROM golang:1.17-alpine as builder
+FROM golang:1.21-alpine as builder
 
 RUN mkdir /goca-builder
 
@@ -7,7 +7,7 @@ WORKDIR /goca-builder/rest-api
 
 RUN go build -o main .
 
-FROM golang:1.17-alpine
+FROM golang:1.21-alpine
 
 RUN mkdir -p /goca/data
 

@@ -133,9 +133,9 @@ func LoadCSR(csrString []byte) (*x509.CertificateRequest, error) {
 // LoadCRL loads a Certificate Revocation List from a read file.
 //
 // Using ioutil.ReadFile() satisfyies the read file.
-func LoadCRL(crlString []byte) (*pkix.CertificateList, error) {
+func LoadCRL(crlString []byte) (*x509.RevocationList, error) {
 	block, _ := pem.Decode([]byte(string(crlString)))
-	crl, _ := x509.ParseCRL(block.Bytes)
+	crl, _ := x509.ParseRevocationList(block.Bytes)
 
 	return crl, nil
 }
@@ -369,14 +369,14 @@ func CASignCSR(CACommonName string, csr x509.CertificateRequest, caCert *x509.Ce
 }
 
 // RevokeCertificate is used to revoke a certificate (added to the revoked list)
-func RevokeCertificate(CACommonName string, certificateList []pkix.RevokedCertificate, caCert *x509.Certificate, privKey *rsa.PrivateKey) (crl []byte, err error) {
+func RevokeCertificate(CACommonName string, certificateList []x509.RevocationListEntry, caCert *x509.Certificate, privKey *rsa.PrivateKey) (crl []byte, err error) {
 
 	crlTemplate := x509.RevocationList{
-		SignatureAlgorithm:  caCert.SignatureAlgorithm,
-		RevokedCertificates: certificateList,
-		Number:              newSerialNumber(),
-		ThisUpdate:          time.Now(),
-		NextUpdate:          time.Now().AddDate(0, 0, 1),
+		SignatureAlgorithm:        caCert.SignatureAlgorithm,
+		RevokedCertificateEntries: certificateList,
+		Number:                    newSerialNumber(),
+		ThisUpdate:                time.Now(),
+		NextUpdate:                time.Now().AddDate(0, 0, 1),
 	}
 
 	crlByte, err := x509.CreateRevocationList(rand.Reader, &crlTemplate, caCert, privKey)

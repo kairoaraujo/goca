@@ -377,6 +377,9 @@
                     "type": "string",
                     "example": "-----BEGIN CERTIFICATE REQUEST-----...-----END CERTIFICATE REQUEST-----\n"
                 },
+                "isIntermediate": {
+                    "type": "boolean"
+                },
                 "private_key": {
                     "description": "Private Key string",
                     "type": "string",
@@ -592,6 +595,10 @@
                 },
                 "identity": {
                     "$ref": "#/definitions/goca.Identity"
+                },
+                "parent_common_name": {
+                    "type": "string",
+                    "example": "root-ca"
                 }
             }
         },

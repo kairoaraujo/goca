@@ -17,9 +17,11 @@ Certificates Request List (CRL).
 
 **Content**:
 
-- [GoCA Docker Container](#GoCA-Docker-Container)
-- [GoCA Package](#GoCA-Package)
-- [GoCA HTTP REST API package](#GoCA-HTTP-REST-API)
+- [Go Certificate Authority management package](#go-certificate-authority-management-package)
+  - [GoCA Package](#goca-package)
+  - [GoCA HTTP REST API](#goca-http-rest-api)
+  - [GoCA Docker Container](#goca-docker-container)
+- [Contributing](#contributing)
 
 ## GoCA Package
 
@@ -133,3 +135,7 @@ The API Documentation is online available at http://kairoaraujo.github.io/goca/.
 More details in [Docker README](DOCKER_README.md).
 
 GoCA Docker Image is available at https://hub.docker.com/r/kairoaraujo/goca/
+
+# Contributing
+
+See [CONTRIBUTING](CONTRIBUTING.md).

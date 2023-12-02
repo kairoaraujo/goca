@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/rsa"
 	"crypto/x509"
-	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
 	"io/fs"
@@ -50,7 +49,7 @@ type CAData struct {
 	certificate    *x509.Certificate
 	publicKey      rsa.PublicKey
 	csr            *x509.CertificateRequest
-	crl            *pkix.CertificateList
+	crl            *x509.RevocationList
 	IsIntermediate bool
 }
 
@@ -187,9 +186,9 @@ func (c *CA) create(commonName, parentCommonName string, id Identity) error {
 	caData.certificate = certificate
 	caData.Certificate = string(certString)
 
-	crlBytes, err := cert.RevokeCertificate(c.CommonName, []pkix.RevokedCertificate{}, certificate, privKey)
+	crlBytes, err := cert.RevokeCertificate(c.CommonName, []x509.RevocationListEntry{}, certificate, privKey)
 	if err != nil {
-		crl, err := x509.ParseCRL(crlBytes)
+		crl, err := x509.ParseRevocationList(crlBytes)
 		if err != nil {
 			caData.crl = crl
 		}
@@ -452,22 +451,22 @@ func (c *CA) loadCertificate(commonName string) (certificate Certificate, err er
 
 func (c *CA) revokeCertificate(certificate *x509.Certificate) error {
 
-	var revokedCerts []pkix.RevokedCertificate
+	var revokedCerts []x509.RevocationListEntry
 	var caDir string = filepath.Join(c.CommonName, "ca")
 	var crlString []byte
 
 	currentCRL := c.GoCRL()
 	if currentCRL != nil {
-		for _, serialNumber := range currentCRL.TBSCertList.RevokedCertificates {
+		for _, serialNumber := range currentCRL.RevokedCertificateEntries {
 			if serialNumber.SerialNumber.String() == certificate.SerialNumber.String() {
 				return ErrCertRevoked
 			}
 		}
 
-		revokedCerts = currentCRL.TBSCertList.RevokedCertificates
+		revokedCerts = currentCRL.RevokedCertificateEntries
 	}
 
-	newCertRevoke := pkix.RevokedCertificate{
+	newCertRevoke := x509.RevocationListEntry{
 		SerialNumber:   certificate.SerialNumber,
 		RevocationTime: time.Now(),
 	}
@@ -479,7 +478,7 @@ func (c *CA) revokeCertificate(certificate *x509.Certificate) error {
 		return err
 	}
 
-	crl, err := x509.ParseCRL(crlByte)
+	crl, err := x509.ParseRevocationList(crlByte)
 	if err != nil {
 		return err
 	}

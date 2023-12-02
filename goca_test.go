@@ -205,8 +205,8 @@ func TestFunctionalRevokeCertificate(t *testing.T) {
 		t.Error("Failed to revoke certificate")
 	}
 	t.Log(intermediateCert.certificate.SerialNumber)
-	t.Log(RootCA.Data.crl.TBSCertList.RevokedCertificates[0].SerialNumber)
-	result := intermediateCert.certificate.SerialNumber.Cmp(RootCA.Data.crl.TBSCertList.RevokedCertificates[0].SerialNumber)
+	t.Log(RootCA.Data.crl.RevokedCertificateEntries[0].SerialNumber)
+	result := intermediateCert.certificate.SerialNumber.Cmp(RootCA.Data.crl.RevokedCertificateEntries[0].SerialNumber)
 	if result != 0 {
 		t.Error("Certificate Serial Number is not in the CRL")
 	}
@@ -214,8 +214,8 @@ func TestFunctionalRevokeCertificate(t *testing.T) {
 	t.Log("Negative check")
 	intranetCert, _ := RootCA.LoadCertificate("intranet.go-root.ca")
 	t.Log(intranetCert.certificate.SerialNumber)
-	t.Log(RootCA.Data.crl.TBSCertList.RevokedCertificates[0].SerialNumber)
-	result = intranetCert.certificate.SerialNumber.Cmp(RootCA.Data.crl.TBSCertList.RevokedCertificates[0].SerialNumber)
+	t.Log(RootCA.Data.crl.RevokedCertificateEntries[0].SerialNumber)
+	result = intranetCert.certificate.SerialNumber.Cmp(RootCA.Data.crl.RevokedCertificateEntries[0].SerialNumber)
 	if result == 0 {
 		t.Error("Non revoked certificate in list")
 	}
@@ -223,8 +223,8 @@ func TestFunctionalRevokeCertificate(t *testing.T) {
 	if err != nil {
 		t.Error("Failed to revoke.")
 	}
-	t.Log(RootCA.Data.crl.TBSCertList.RevokedCertificates)
-	if len(RootCA.Data.crl.TBSCertList.RevokedCertificates) != 2 {
+	t.Log(RootCA.Data.crl.RevokedCertificateEntries)
+	if len(RootCA.Data.crl.RevokedCertificateEntries) != 2 {
 		t.Error("Not appending certificates to revoke list")
 	}
 	t.Logf("Test appending revoked certificates")
