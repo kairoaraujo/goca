@@ -352,7 +352,7 @@ func CASignCSR(CACommonName string, csr x509.CertificateRequest, caCert *x509.Ce
 		NotBefore:    time.Now(),
 		NotAfter:     time.Now().AddDate(0, 0, valid),
 		KeyUsage:     x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		IPAddresses:  csr.IPAddresses,
 	}
 
