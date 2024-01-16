@@ -7,6 +7,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"io/fs"
+	"net"
 	"os"
 	"path/filepath"
 	"time"
@@ -32,6 +33,7 @@ type Identity struct {
 	Province           string   `json:"province" example:"Veldhoven"`                           // Province name
 	EmailAddresses     string   `json:"email" example:"sec@company.com"`                        // Email Address
 	DNSNames           []string `json:"dns_names" example:"ca.example.com,root-ca.example.com"` // DNS Names list
+	IPAddresses        []net.IP `json:"ip_addresses,omitempty" example:"127.0.0.1,192.168.0.1"` // IP Address list
 	Intermediate       bool     `json:"intermediate" example:"false"`                           // Intermendiate Certificate Authority (default is false)
 	KeyBitSize         int      `json:"key_size" example:"2048"`                                // Key Bit Size (defaul: 2048)
 	Valid              int      `json:"valid" example:"365"`                                    // Minimum 1 day, maximum 825 days -- Default: 397
@@ -138,6 +140,7 @@ func (c *CA) create(commonName, parentCommonName string, id Identity) error {
 			id.EmailAddresses,
 			id.Valid,
 			id.DNSNames,
+			id.IPAddresses,
 			privKey,
 			pubKey,
 			storage.CreationTypeCA,
@@ -167,6 +170,7 @@ func (c *CA) create(commonName, parentCommonName string, id Identity) error {
 			id.EmailAddresses,
 			id.Valid,
 			id.DNSNames,
+			id.IPAddresses,
 			privKey,
 			parentPrivateKey,
 			parentCertificate,
@@ -367,7 +371,7 @@ func (c *CA) issueCertificate(commonName string, id Identity) (certificate Certi
 	certificate.publicKey = *pubKey
 	certificate.PublicKey = string(publicKeyString)
 
-	csrBytes, err := cert.CreateCSR(c.CommonName, commonName, id.Country, id.Province, id.Locality, id.Organization, id.OrganizationalUnit, id.EmailAddresses, id.DNSNames, privKey, storage.CreationTypeCertificate)
+	csrBytes, err := cert.CreateCSR(c.CommonName, commonName, id.Country, id.Province, id.Locality, id.Organization, id.OrganizationalUnit, id.EmailAddresses, id.DNSNames, id.IPAddresses, privKey, storage.CreationTypeCertificate)
 	if err != nil {
 		return certificate, err
 	}
