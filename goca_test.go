@@ -2,8 +2,10 @@ package goca
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 )
 
@@ -106,6 +108,7 @@ func TestFunctionalRootCAIssueNewCertificate(t *testing.T) {
 		Province:           "Veldhoven",
 		Intermediate:       true,
 		DNSNames:           []string{"w3.intranet.go-root.ca"},
+		IPAddresses:        []net.IP{net.IPv4(192, 168, 17, 243)},
 	}
 
 	RootCA, err := Load("go-root.ca")
@@ -134,6 +137,16 @@ func TestFunctionalRootCAIssueNewCertificate(t *testing.T) {
 	}
 	if fi.Mode() != GoodKeyPerms {
 		t.Errorf("Expected key.pem permissions " + fmt.Sprint(GoodKeyPerms) + " but got: " + fmt.Sprint(fi.Mode()))
+	}
+
+	if !slices.Contains(intranetCert.certificate.DNSNames, intranteIdentity.DNSNames[0]) {
+		t.Errorf("Expected issued certificate to have DNS SAN %q but got: %q", intranteIdentity.DNSNames[0], intranetCert.certificate.DNSNames)
+	}
+
+	if !slices.ContainsFunc(intranetCert.certificate.IPAddresses, func(ip net.IP) bool {
+		return ip.Equal(intranteIdentity.IPAddresses[0])
+	}) {
+		t.Errorf("Expected issued certificate to have IP SAN %q but got: %q", intranteIdentity.IPAddresses[0], intranetCert.certificate.IPAddresses)
 	}
 }
 

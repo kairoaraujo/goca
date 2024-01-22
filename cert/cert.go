@@ -39,6 +39,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"math/big"
+	"net"
 	"path/filepath"
 	"time"
 
@@ -72,7 +73,7 @@ func newSerialNumber() (serialNumber *big.Int) {
 // CreateCSR creates a Certificate Signing Request returning certData with CSR.
 //
 // The CSR is also stored in $CAPATH with extension .csr
-func CreateCSR(CACommonName, commonName, country, province, locality, organization, organizationalUnit, emailAddresses string, dnsNames []string, priv *rsa.PrivateKey, creationType storage.CreationType) (csr []byte, err error) {
+func CreateCSR(CACommonName, commonName, country, province, locality, organization, organizationalUnit, emailAddresses string, dnsNames []string, ipAddresses []net.IP, priv *rsa.PrivateKey, creationType storage.CreationType) (csr []byte, err error) {
 	var oidEmailAddress = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 9, 1}
 
 	subject := pkix.Name{
@@ -93,6 +94,7 @@ func CreateCSR(CACommonName, commonName, country, province, locality, organizati
 		RawSubject:         asn1Subj,
 		EmailAddresses:     []string{emailAddresses},
 		SignatureAlgorithm: x509.SHA256WithRSA,
+		IPAddresses:        ipAddresses,
 	}
 
 	dnsNames = append(dnsNames, commonName)
@@ -184,6 +186,7 @@ func CreateRootCert(
 	emailAddresses string,
 	valid int,
 	dnsNames []string,
+	ipAddresses []net.IP,
 	privateKey *rsa.PrivateKey,
 	publicKey *rsa.PublicKey,
 	creationType storage.CreationType,
@@ -199,6 +202,7 @@ func CreateRootCert(
 		emailAddresses,
 		valid,
 		dnsNames,
+		ipAddresses,
 		privateKey,
 		nil, // parentPrivateKey
 		nil, // parentCertificate
@@ -223,6 +227,7 @@ func CreateCACert(
 	emailAddresses string,
 	validDays int,
 	dnsNames []string,
+	ipAddresses []net.IP,
 	privateKey,
 	parentPrivateKey *rsa.PrivateKey,
 	parentCertificate *x509.Certificate,
@@ -250,6 +255,7 @@ func CreateCACert(
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 		BasicConstraintsValid: true,
+		IPAddresses:           ipAddresses,
 	}
 	dnsNames = append(dnsNames, commonName)
 	caCert.DNSNames = dnsNames
@@ -346,7 +352,8 @@ func CASignCSR(CACommonName string, csr x509.CertificateRequest, caCert *x509.Ce
 		NotBefore:    time.Now(),
 		NotAfter:     time.Now().AddDate(0, 0, valid),
 		KeyUsage:     x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		IPAddresses:  csr.IPAddresses,
 	}
 
 	csrTemplate.DNSNames = csr.DNSNames
