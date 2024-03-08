@@ -35,7 +35,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 
-	storage "github.com/kairoaraujo/goca/_storage"
+	storage "github.com/kairoaraujo/goca/v2/_storage"
 )
 
 // KeysData represents the RSA keys with Private Key (Key) and Public Key (Public Key).

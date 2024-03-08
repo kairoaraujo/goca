@@ -11,10 +11,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/kairoaraujo/goca"
-	storage "github.com/kairoaraujo/goca/_storage"
-	"github.com/kairoaraujo/goca/cert"
-	"github.com/kairoaraujo/goca/rest-api/models"
+	"github.com/kairoaraujo/goca/v2"
+	storage "github.com/kairoaraujo/goca/v2/_storage"
+	"github.com/kairoaraujo/goca/v2/cert"
+	"github.com/kairoaraujo/goca/v2/rest-api/models"
 )
 
 func getCAData(ca goca.CA) (body models.CABody) {

@@ -12,9 +12,9 @@ import (
 	"path/filepath"
 	"time"
 
-	storage "github.com/kairoaraujo/goca/_storage"
-	"github.com/kairoaraujo/goca/cert"
-	"github.com/kairoaraujo/goca/key"
+	storage "github.com/kairoaraujo/goca/v2/_storage"
+	"github.com/kairoaraujo/goca/v2/cert"
+	"github.com/kairoaraujo/goca/v2/key"
 )
 
 // Const
