@@ -26,7 +26,7 @@ Certificates Request List (CRL).
 ## GoCA Package
 
 ```shell
-go get http://github.com/kairoaraujo/goca
+go get github.com/kairoaraujo/goca@v2.0.0
 ```
 
 All files are store in the ``$CAPATH``. The ``$CAPATH`` is an environment
