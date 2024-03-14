@@ -33,7 +33,7 @@ type Identity struct {
 	Province           string   `json:"province" example:"Veldhoven"`                           // Province name
 	EmailAddresses     string   `json:"email" example:"sec@company.com"`                        // Email Address
 	DNSNames           []string `json:"dns_names" example:"ca.example.com,root-ca.example.com"` // DNS Names list
-	IPAddresses        []net.IP `json:"ip_addresses,omitempty" example:"127.0.0.1,192.168.0.1"` // IP Address list
+	IPAddresses        []net.IP `json:"ip_addresses,omitempty"`                                 // IP Address list
 	Intermediate       bool     `json:"intermediate" example:"false"`                           // Intermendiate Certificate Authority (default is false)
 	KeyBitSize         int      `json:"key_size" example:"2048"`                                // Key Bit Size (defaul: 2048)
 	Valid              int      `json:"valid" example:"365"`                                    // Minimum 1 day, maximum 825 days -- Default: 397
