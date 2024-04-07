@@ -20,7 +20,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 
-	storage "github.com/kairoaraujo/goca/_storage"
+	storage "github.com/kairoaraujo/goca/v2/_storage"
 )
 
 // CA represents the basic CA data

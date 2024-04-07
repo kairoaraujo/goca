@@ -57,53 +57,6 @@ definitions:
           -----BEGIN PUBLIC KEY-----...-----END PUBLIC KEY-----
         type: string
     type: object
-  goca.Identity:
-    properties:
-      country:
-        description: Country (two letters)
-        example: NL
-        type: string
-      dns_names:
-        description: DNS Names list
-        example:
-        - ca.example.com
-        - root-ca.example.com
-        items:
-          type: string
-        type: array
-      email:
-        description: Email Address
-        example: sec@company.com
-        type: string
-      intermediate:
-        description: Intermendiate Certificate Authority (default is false)
-        example: false
-        type: boolean
-      key_size:
-        description: 'Key Bit Size (defaul: 2048)'
-        example: 2048
-        type: integer
-      locality:
-        description: Locality name
-        example: Noord-Brabant
-        type: string
-      organization:
-        description: Organization name
-        example: Company
-        type: string
-      organization_unit:
-        description: Organizational Unit name
-        example: Security Management
-        type: string
-      province:
-        description: Province name
-        example: Veldhoven
-        type: string
-      valid:
-        description: 'Minimum 1 day, maximum 825 days -- Default: 397'
-        example: 365
-        type: integer
-    type: object
   models.CABody:
     properties:
       certificates:
@@ -175,18 +128,6 @@ definitions:
         type: string
     type: object
   models.Payload:
-    properties:
-      common_name:
-        example: root-ca
-        type: string
-      identity:
-        $ref: '#/definitions/goca.Identity'
-      parent_common_name:
-        example: root-ca
-        type: string
-    required:
-    - common_name
-    - identity
     type: object
   models.ResponseCA:
     properties:
