@@ -451,6 +451,16 @@
                     "type": "boolean",
                     "example": false
                 },
+                "ip_addresses": {
+                    "description": "IP Address list",
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    }
+                },
                 "key_size": {
                     "description": "Key Bit Size (defaul: 2048)",
                     "type": "integer",

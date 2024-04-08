@@ -79,6 +79,13 @@ definitions:
         description: Intermendiate Certificate Authority (default is false)
         example: false
         type: boolean
+      ip_addresses:
+        description: IP Address list
+        items:
+          items:
+            type: integer
+          type: array
+        type: array
       key_size:
         description: 'Key Bit Size (defaul: 2048)'
         example: 2048
