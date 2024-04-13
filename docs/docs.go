@@ -598,24 +598,7 @@ const docTemplate = `{
             }
         },
         "models.Payload": {
-            "type": "object",
-            "required": [
-                "common_name",
-                "identity"
-            ],
-            "properties": {
-                "common_name": {
-                    "type": "string",
-                    "example": "root-ca"
-                },
-                "identity": {
-                    "$ref": "#/definitions/goca.Identity"
-                },
-                "parent_common_name": {
-                    "type": "string",
-                    "example": "root-ca"
-                }
-            }
+            "type": "object"
         },
         "models.ResponseCA": {
             "type": "object",
