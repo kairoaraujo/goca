@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -25,9 +26,19 @@ import (
 func main() {
 
 	var port int
+	var capath string
 
 	flag.IntVar(&port, "p", 80, "Port to listen, default is 80")
+	flag.StringVar(&capath, "capath", ".", "Path to save certificates")
+	help := flag.Bool("help", false, "Get hints about arguments")
 	flag.Parse()
+	if *help {
+		flag.Usage()
+		return
+	}
+	if capath != "" {
+		os.Setenv("CAPATH", capath)
+	}
 
 	router := gin.Default()
 	// Set a lower memory limit for multipart forms (default is 32 MiB)
