@@ -15,6 +15,7 @@ import (
 	storage "github.com/kairoaraujo/goca/v2/_storage"
 	"github.com/kairoaraujo/goca/v2/cert"
 	"github.com/kairoaraujo/goca/v2/rest-api/models"
+	"github.com/kairoaraujo/goca/v2/rest-api/utils"
 )
 
 func getCAData(ca goca.CA) (body models.CABody) {
@@ -36,6 +37,7 @@ func getCAData(ca goca.CA) (body models.CABody) {
 
 	if certificate != nil {
 		body.DNSNames = certificate.DNSNames
+		body.IPAddresses = utils.ParseIPs2Strings(certificate.IPAddresses)
 		body.IssueDate = certificate.NotBefore.String()
 		body.ExpireDate = certificate.NotAfter.String()
 		crl := ca.GoCRL()
@@ -58,6 +60,7 @@ func getCertificateData(certificate goca.Certificate) (body models.CertificateBo
 
 	cert := certificate.GoCert()
 
+	body.IPAddresses = utils.ParseIPs2Strings(cert.IPAddresses)
 	body.CommonName = cert.Subject.CommonName
 	body.DNSNames = cert.DNSNames
 	body.SerialNumber = cert.SerialNumber.String()
@@ -73,6 +76,7 @@ func payloadInit(json models.Payload) (commonName, parentCommonName string, iden
 
 	commonName = json.CommonName
 	parentCommonName = json.ParentCommonName
+
 	identity = goca.Identity{
 		Organization:       json.Identity.Organization,
 		OrganizationalUnit: json.Identity.OrganizationalUnit,
@@ -80,6 +84,7 @@ func payloadInit(json models.Payload) (commonName, parentCommonName string, iden
 		Locality:           json.Identity.Locality,
 		Province:           json.Identity.Province,
 		DNSNames:           json.Identity.DNSNames,
+		IPAddresses:        utils.ParseStrings2IPs(json.Identity.IPAddresses),
 		Intermediate:       json.Identity.Intermediate,
 		KeyBitSize:         json.Identity.KeyBitSize,
 		Valid:              json.Identity.Valid,
@@ -148,6 +153,7 @@ func AddCA(c *gin.Context) {
 // @Description list the Certificate Authorities data
 // @Tags CA
 // @Produce json
+// @Param cn path string true "Common Name"
 // @Success 200 {object} models.ResponseCA
 // @Failure 404 {object} models.ResponseError
 // @Failure 500 Internal Server Error
@@ -328,6 +334,7 @@ func SignCSR(c *gin.Context) {
 // @Description list all certificates managed by a certain Certificate Authority (cn)
 // @Tags CA/{CN}/Certificates
 // @Produce json
+// @Param cn path string true "Common Name of the Certificate Authority"
 // @Success 200 {object} models.ResponseCA
 // @Failure 404 {object} models.ResponseError
 // @Failure 500 Internal Server Error
@@ -354,6 +361,7 @@ func GetCertificates(c *gin.Context) {
 // @Tags CA/{CN}/Certificates
 // @Produce json
 // @Accept json
+// @Param cn path string true "Common Name of the Certificate Authority"
 // @Param ca body models.Payload true "Add new Certificate Authority or Intermediate Certificate Authority"
 // @Success 200 {object} models.ResponseCertificates
 // @Failure 404 {object} models.ResponseError
@@ -402,6 +410,8 @@ func IssueCertificates(c *gin.Context) {
 // @Description get information about a certificate issued by a certain CA
 // @Tags CA/{CN}/Certificates
 // @Produce json
+// @Param cn path string true "Common Name of the Certificate Authority"
+// @Param certificate_cn path string true "Common Name of Certificate"
 // @Success 200 {object} models.ResponseCertificates
 // @Failure 404 {object} models.ResponseError
 // @Failure 500 Internal Server Error
@@ -437,6 +447,8 @@ func GetCertificatesCommonName(c *gin.Context) {
 // @Tags CA/{CN}/Certificates
 // @Produce json
 // @Accept json
+// @Param cn path string true "Common Name of the Certificate Authority"
+// @Param certificate_cn path string true "Common Name of Certificate"
 // @Success 200 {object} models.CABody
 // @Failure 404 {object} models.ResponseError
 // @Failure 500 Internal Server Error
