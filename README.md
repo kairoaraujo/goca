@@ -5,6 +5,13 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/kairoaraujo/goca.svg)](https://pkg.go.dev/github.com/kairoaraujo/goca)
 [![Docker Pulls](https://img.shields.io/docker/pulls/kairoaraujo/goca.svg?maxAge=604800)](https://hub.docker.com/r/kairoaraujo/goca/)
 
+### THIS PROJECT IS OPEN FOR MAINTAINERS
+
+> Development on the GoCA projects has been stagnated for a while
+> For that reason, I'm opening the organization to new maintainers who will have the proper permissions to unstuck development.
+>
+> Those willing to join, contact me by email with the subject [GoCA Maintainer] <your name> and please let me know what
+> motivates you to join in such role.
 
 GocA provides a Certificate Authority (CA) framework managing, a Simple PKI.
 
