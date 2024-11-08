@@ -15,3 +15,6 @@ docker-image:
 
 lint:
 	golangci-lint run -e gosec
+
+start:
+	go run rest-api/main.go -capath="./store" -p 81

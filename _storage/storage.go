@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2020, Kairo de Araujo
+// # Copyright (c) 2020, Kairo de Araujo
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -60,7 +60,7 @@ func savePEMKey(fileName string, key *rsa.PrivateKey) {
 	checkError(err)
 
 	var privateKey = &pem.Block{
-		Type:  "PRIVATE KEY",
+		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(key),
 	}
 
@@ -73,7 +73,7 @@ func savePublicPEMKey(fileName string, pubkey rsa.PublicKey) {
 	checkError(err)
 
 	var pemkey = &pem.Block{
-		Type:  "PUBLIC KEY",
+		Type:  "RSA PUBLIC KEY",
 		Bytes: asn1Bytes,
 	}
 

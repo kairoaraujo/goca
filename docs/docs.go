@@ -108,6 +108,15 @@ const docTemplate = `{
                     "CA"
                 ],
                 "summary": "Certificate Authorities (CA) Information based in Common Name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Common Name",
+                        "name": "cn",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -140,6 +149,15 @@ const docTemplate = `{
                     "CA/{CN}/Certificates"
                 ],
                 "summary": "List all Certificates managed by a certain Certificate Authority",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Common Name of the Certificate Authority",
+                        "name": "cn",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -174,6 +192,13 @@ const docTemplate = `{
                 ],
                 "summary": "CA issue new certificate",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Common Name of the Certificate Authority",
+                        "name": "cn",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "Add new Certificate Authority or Intermediate Certificate Authority",
                         "name": "ca",
@@ -216,6 +241,22 @@ const docTemplate = `{
                     "CA/{CN}/Certificates"
                 ],
                 "summary": "Get information about a Certificate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Common Name of the Certificate Authority",
+                        "name": "cn",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Common Name of Certificate",
+                        "name": "certificate_cn",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -249,6 +290,22 @@ const docTemplate = `{
                     "CA/{CN}/Certificates"
                 ],
                 "summary": "CA revoke a existent certificate managed by CA",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Common Name of the Certificate Authority",
+                        "name": "cn",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Common Name of Certificate",
+                        "name": "certificate_cn",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -427,77 +484,6 @@ const docTemplate = `{
                 }
             }
         },
-        "goca.Identity": {
-            "type": "object",
-            "properties": {
-                "country": {
-                    "description": "Country (two letters)",
-                    "type": "string",
-                    "example": "NL"
-                },
-                "dns_names": {
-                    "description": "DNS Names list",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "ca.example.com",
-                        "root-ca.example.com"
-                    ]
-                },
-                "email": {
-                    "description": "Email Address",
-                    "type": "string",
-                    "example": "sec@company.com"
-                },
-                "intermediate": {
-                    "description": "Intermendiate Certificate Authority (default is false)",
-                    "type": "boolean",
-                    "example": false
-                },
-                "ip_addresses": {
-                    "description": "IP Address list",
-                    "type": "array",
-                    "items": {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        }
-                    }
-                },
-                "key_size": {
-                    "description": "Key Bit Size (defaul: 2048)",
-                    "type": "integer",
-                    "example": 2048
-                },
-                "locality": {
-                    "description": "Locality name",
-                    "type": "string",
-                    "example": "Noord-Brabant"
-                },
-                "organization": {
-                    "description": "Organization name",
-                    "type": "string",
-                    "example": "Company"
-                },
-                "organization_unit": {
-                    "description": "Organizational Unit name",
-                    "type": "string",
-                    "example": "Security Management"
-                },
-                "province": {
-                    "description": "Province name",
-                    "type": "string",
-                    "example": "Veldhoven"
-                },
-                "valid": {
-                    "description": "Minimum 1 day, maximum 825 days -- Default: 397",
-                    "type": "integer",
-                    "example": 365
-                }
-            }
-        },
         "models.CABody": {
             "type": "object",
             "properties": {
@@ -538,6 +524,16 @@ const docTemplate = `{
                 },
                 "intermediate": {
                     "type": "boolean"
+                },
+                "ip_addresses": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "127.0.0.1",
+                        "192.168.2.1"
+                    ]
                 },
                 "issue_date": {
                     "type": "string",
@@ -587,6 +583,16 @@ const docTemplate = `{
                 "files": {
                     "$ref": "#/definitions/goca.Certificate"
                 },
+                "ip_addresses": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "127.0.0.1",
+                        "192.168.0.1"
+                    ]
+                },
                 "issue_date": {
                     "type": "string",
                     "example": "2021-01-06 10:31:43 +0000 UTC"
@@ -598,7 +604,96 @@ const docTemplate = `{
             }
         },
         "models.Payload": {
-            "type": "object"
+            "type": "object",
+            "required": [
+                "common_name",
+                "identity"
+            ],
+            "properties": {
+                "common_name": {
+                    "type": "string",
+                    "example": "root-ca"
+                },
+                "identity": {
+                    "$ref": "#/definitions/models.PayloadIdentity"
+                },
+                "parent_common_name": {
+                    "type": "string",
+                    "example": "root-ca"
+                }
+            }
+        },
+        "models.PayloadIdentity": {
+            "type": "object",
+            "properties": {
+                "country": {
+                    "description": "Country (two letters)",
+                    "type": "string",
+                    "example": "NL"
+                },
+                "dns_names": {
+                    "description": "DNS Names list",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "ca.example.com",
+                        "root-ca.example.com"
+                    ]
+                },
+                "email": {
+                    "description": "Email Address",
+                    "type": "string",
+                    "example": "sec@company.com"
+                },
+                "intermediate": {
+                    "description": "Intermendiate Certificate Authority (default is false)",
+                    "type": "boolean",
+                    "example": false
+                },
+                "ip_addresses": {
+                    "description": "IP Address list",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "127.0.0.1",
+                        "192.168.0.1"
+                    ]
+                },
+                "key_size": {
+                    "description": "Key Bit Size (defaul: 2048)",
+                    "type": "integer",
+                    "example": 2048
+                },
+                "locality": {
+                    "description": "Locality name",
+                    "type": "string",
+                    "example": "Noord-Brabant"
+                },
+                "organization": {
+                    "description": "Organization name",
+                    "type": "string",
+                    "example": "Company"
+                },
+                "organization_unit": {
+                    "description": "Organizational Unit name",
+                    "type": "string",
+                    "example": "Security Management"
+                },
+                "province": {
+                    "description": "Province name",
+                    "type": "string",
+                    "example": "Veldhoven"
+                },
+                "valid": {
+                    "description": "Minimum 1 day, maximum 825 days -- Default: 397",
+                    "type": "integer",
+                    "example": 365
+                }
+            }
         },
         "models.ResponseCA": {
             "type": "object",

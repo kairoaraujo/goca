@@ -57,60 +57,6 @@ definitions:
           -----BEGIN PUBLIC KEY-----...-----END PUBLIC KEY-----
         type: string
     type: object
-  goca.Identity:
-    properties:
-      country:
-        description: Country (two letters)
-        example: NL
-        type: string
-      dns_names:
-        description: DNS Names list
-        example:
-        - ca.example.com
-        - root-ca.example.com
-        items:
-          type: string
-        type: array
-      email:
-        description: Email Address
-        example: sec@company.com
-        type: string
-      intermediate:
-        description: Intermendiate Certificate Authority (default is false)
-        example: false
-        type: boolean
-      ip_addresses:
-        description: IP Address list
-        items:
-          items:
-            type: integer
-          type: array
-        type: array
-      key_size:
-        description: 'Key Bit Size (defaul: 2048)'
-        example: 2048
-        type: integer
-      locality:
-        description: Locality name
-        example: Noord-Brabant
-        type: string
-      organization:
-        description: Organization name
-        example: Company
-        type: string
-      organization_unit:
-        description: Organizational Unit name
-        example: Security Management
-        type: string
-      province:
-        description: Province name
-        example: Veldhoven
-        type: string
-      valid:
-        description: 'Minimum 1 day, maximum 825 days -- Default: 397'
-        example: 365
-        type: integer
-    type: object
   models.CABody:
     properties:
       certificates:
@@ -140,6 +86,13 @@ definitions:
         $ref: '#/definitions/goca.CAData'
       intermediate:
         type: boolean
+      ip_addresses:
+        example:
+        - 127.0.0.1
+        - 192.168.2.1
+        items:
+          type: string
+        type: array
       issue_date:
         example: 2021-01-06 10:31:43 +0000 UTC
         type: string
@@ -174,6 +127,13 @@ definitions:
         type: string
       files:
         $ref: '#/definitions/goca.Certificate'
+      ip_addresses:
+        example:
+        - 127.0.0.1
+        - 192.168.0.1
+        items:
+          type: string
+        type: array
       issue_date:
         example: 2021-01-06 10:31:43 +0000 UTC
         type: string
@@ -187,13 +147,68 @@ definitions:
         example: root-ca
         type: string
       identity:
-        $ref: '#/definitions/goca.Identity'
+        $ref: '#/definitions/models.PayloadIdentity'
       parent_common_name:
         example: root-ca
         type: string
     required:
     - common_name
     - identity
+    type: object
+  models.PayloadIdentity:
+    properties:
+      country:
+        description: Country (two letters)
+        example: NL
+        type: string
+      dns_names:
+        description: DNS Names list
+        example:
+        - ca.example.com
+        - root-ca.example.com
+        items:
+          type: string
+        type: array
+      email:
+        description: Email Address
+        example: sec@company.com
+        type: string
+      intermediate:
+        description: Intermendiate Certificate Authority (default is false)
+        example: false
+        type: boolean
+      ip_addresses:
+        description: IP Address list
+        example:
+        - 127.0.0.1
+        - 192.168.0.1
+        items:
+          type: string
+        type: array
+      key_size:
+        description: 'Key Bit Size (defaul: 2048)'
+        example: 2048
+        type: integer
+      locality:
+        description: Locality name
+        example: Noord-Brabant
+        type: string
+      organization:
+        description: Organization name
+        example: Company
+        type: string
+      organization_unit:
+        description: Organizational Unit name
+        example: Security Management
+        type: string
+      province:
+        description: Province name
+        example: Veldhoven
+        type: string
+      valid:
+        description: 'Minimum 1 day, maximum 825 days -- Default: 397'
+        example: 365
+        type: integer
     type: object
   models.ResponseCA:
     properties:
@@ -286,6 +301,12 @@ paths:
   /api/v1/ca/{cn}:
     get:
       description: list the Certificate Authorities data
+      parameters:
+      - description: Common Name
+        in: path
+        name: cn
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -308,6 +329,12 @@ paths:
     get:
       description: list all certificates managed by a certain Certificate Authority
         (cn)
+      parameters:
+      - description: Common Name of the Certificate Authority
+        in: path
+        name: cn
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -331,6 +358,11 @@ paths:
       - application/json
       description: the Certificate Authority issues a new Certificate
       parameters:
+      - description: Common Name of the Certificate Authority
+        in: path
+        name: cn
+        required: true
+        type: string
       - description: Add new Certificate Authority or Intermediate Certificate Authority
         in: body
         name: ca
@@ -360,6 +392,17 @@ paths:
       consumes:
       - application/json
       description: the Certificate Authority revokes a managed Certificate
+      parameters:
+      - description: Common Name of the Certificate Authority
+        in: path
+        name: cn
+        required: true
+        type: string
+      - description: Common Name of Certificate
+        in: path
+        name: certificate_cn
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -380,6 +423,17 @@ paths:
       - CA/{CN}/Certificates
     get:
       description: get information about a certificate issued by a certain CA
+      parameters:
+      - description: Common Name of the Certificate Authority
+        in: path
+        name: cn
+        required: true
+        type: string
+      - description: Common Name of Certificate
+        in: path
+        name: certificate_cn
+        required: true
+        type: string
       produces:
       - application/json
       responses:
